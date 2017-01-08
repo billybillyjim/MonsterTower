@@ -22,7 +22,7 @@ public class Building : MonoBehaviour {
     {
         buildingSprite = s;
         GetComponent<SpriteRenderer>().sprite = s;
-        buildingType = i;
+        setType(i);
     }
     public void setType(int i)
     {

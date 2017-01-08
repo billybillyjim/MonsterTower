@@ -52,12 +52,11 @@ public class TowerMap : MonoBehaviour {
         Sprite l = Resources.Load("Buildings/Lobby", typeof(Sprite)) as Sprite;
         Sprite p = Resources.Load("Buildings/EmptyHalf", typeof(Sprite)) as Sprite;
 
-        Debug.Log(d);
         buildingSpriteList.Add(d);
         buildingSpriteList.Add(e);
         buildingSpriteList.Add(l);
         buildingSpriteList.Add(p);
-        Debug.Log(buildingSpriteList[1]);
+
     }
 
     public void build(int x, int y)
@@ -65,6 +64,7 @@ public class TowerMap : MonoBehaviour {
         Debug.Log(towerMap[x, y]);
         if(checkIfBuildable(x,y)){            
             towerMap[x, y].setSprite(buildingSpriteList[Tools.currentTool], Tools.currentTool);
+            Debug.Log(towerMap[x, y].getCost());
             GameRun.chargeMoney(towerMap[x, y].getCost());
             occupy(x, y);
         }       
