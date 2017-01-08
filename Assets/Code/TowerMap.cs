@@ -24,7 +24,8 @@ public class TowerMap : MonoBehaviour {
         loadSpriteList();
         createTower();
     }
-	
+
+	//Makes the whole tower
     private void createTower()
     {
         for(int i = 0; i < towerWidth; i++)
@@ -44,32 +45,42 @@ public class TowerMap : MonoBehaviour {
             }
         }
     }
-
+    //Loads Sprites
+    //TODO: Make it not suck
     private void loadSpriteList()
     {
         Sprite d = Resources.Load("Buildings/Dirt", typeof(Sprite)) as Sprite;
-        Sprite e = Resources.Load("Buildings/Office", typeof(Sprite)) as Sprite;
+        Sprite[] e = Resources.LoadAll<Sprite>("Buildings/Offices");
         Sprite l = Resources.Load("Buildings/Lobby", typeof(Sprite)) as Sprite;
         Sprite p = Resources.Load("Buildings/EmptyHalf", typeof(Sprite)) as Sprite;
-
+        Debug.Log(Resources.Load("Buildings/Offices_1", typeof(Sprite)) as Sprite);
         buildingSpriteList.Add(d);
-        buildingSpriteList.Add(e);
+        buildingSpriteList.AddRange(e);
         buildingSpriteList.Add(l);
         buildingSpriteList.Add(p);
 
     }
 
+    //Builds at given coordinates using the current tool.
     public void build(int x, int y)
     {
         Debug.Log(towerMap[x, y]);
-        if(checkIfBuildable(x,y)){            
-            towerMap[x, y].setSprite(buildingSpriteList[Tools.currentTool], Tools.currentTool);
-            Debug.Log(towerMap[x, y].getCost());
-            GameRun.chargeMoney(towerMap[x, y].getCost());
+        if(checkIfBuildable(x,y) && GameRun.cash >= Tools.currentToolCost){
+            if(Tools.currentTool == 1)
+            {
+                towerMap[x, y].setSprite(buildingSpriteList[Random.Range(1,4)], Tools.currentTool);
+            }
+            else
+            {
+                towerMap[x, y].setSprite(buildingSpriteList[Tools.currentTool], Tools.currentTool);
+            }            
+            
+            GameRun.chargeMoney(Tools.currentToolCost);
             occupy(x, y);
         }       
     }
-
+    //Checks to see if you can build somewhere based on the current tool.
+    //TODO:Make it simple
     private bool checkIfBuildable(int x, int y)
     {
         if(Tools.currentTool == 1)
@@ -94,6 +105,8 @@ public class TowerMap : MonoBehaviour {
 
         return false;
     }
+
+    //Fills in used spaces.
     private void occupy(int x, int y)
     {
         if(Tools.currentTool == 1)

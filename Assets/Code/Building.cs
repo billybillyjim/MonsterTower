@@ -27,7 +27,6 @@ public class Building : MonoBehaviour {
     public void setType(int i)
     {
         buildingType = i;
-        setCost(i);
     }
 
     public void Init(int w, int h)
@@ -45,19 +44,7 @@ public class Building : MonoBehaviour {
         if (Input.GetMouseButton(0))
         {
             GameObject.Find("Tower").GetComponent<TowerMap>().build(wVal, hVal);
-        }
-        
-    }
-    private void setCost(int i)
-    {
-        if(i == 1)
-        {
-            cost = 100;
-        }
-        else if(i == 2)
-        {
-            cost = 200;
-        }
+        }       
     }
 
     public bool getIsOccupied()
@@ -68,9 +55,4 @@ public class Building : MonoBehaviour {
     {
         occupied = b;
     }
-    public float getCost()
-    {
-        return cost;
-    }
-
 }
