@@ -50,6 +50,7 @@
      <Compile Include="Assets\Code\Background.cs" />
      <Compile Include="Assets\Code\Building.cs" />
      <Compile Include="Assets\Code\CameraMovement.cs" />
+     <Compile Include="Assets\Code\DesirabilityTool.cs" />
      <Compile Include="Assets\Code\GameRun.cs" />
      <Compile Include="Assets\Code\Tools.cs" />
      <Compile Include="Assets\Code\TowerMap.cs" />

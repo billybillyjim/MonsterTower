@@ -124,4 +124,45 @@ public class TowerMap : MonoBehaviour {
     {
         return towerMap;
     }
+    private void setDesirability(int x, int y)
+    {
+        DesirabilityTool.checkDesirability(towerMap[x, y].getBuildingType(), getNeighbors(x,y));
+    }
+
+    //TODO:Make not suck
+    public Building[,] getNeighbors(int x, int y)
+    {
+        Building[,] neighbors = new Building[7,7];
+
+        neighbors[3, 3] = towerMap[x, y];
+
+        neighbors[2, 3] = towerMap[x - 1, y];
+        neighbors[3, 2] = towerMap[x, y - 1];
+        neighbors[4, 3] = towerMap[x + 1, y];
+        neighbors[3, 4] = towerMap[x, y + 1];
+
+        neighbors[3, 1] = towerMap[x, y - 2];
+        neighbors[4, 2] = towerMap[x + 1, y - 1];
+        neighbors[5, 3] = towerMap[x + 2, y];
+        neighbors[4, 4] = towerMap[x + 1, y + 1];
+        neighbors[3, 5] = towerMap[x, y + 2];
+        neighbors[2, 4] = towerMap[x - 1, y + 1];
+        neighbors[1, 3] = towerMap[x - 2, y];
+        neighbors[2, 2] = towerMap[x - 1, y - 1];
+
+        neighbors[3, 0] = towerMap[x, y - 3];
+        neighbors[2, 1] = towerMap[x - 1, y - 2];
+        neighbors[1, 2] = towerMap[x - 2, y - 1];
+        neighbors[0, 3] = towerMap[x - 3, y];
+        neighbors[1, 4] = towerMap[x - 2, y + 1];
+        neighbors[2, 5] = towerMap[x - 1, y + 2];
+        neighbors[3, 6] = towerMap[x, y + 3];
+        neighbors[4, 5] = towerMap[x + 1, y + 2];
+        neighbors[5, 4] = towerMap[x + 2, y + 1];
+        neighbors[6, 3] = towerMap[x + 3, y];
+        neighbors[5, 2] = towerMap[x + 2, y - 1];
+        neighbors[4, 1] = towerMap[x + 1, y - 2];
+
+        return neighbors;
+    }
 }

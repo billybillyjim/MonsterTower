@@ -10,15 +10,18 @@ public class GameRun : MonoBehaviour {
     private Building[,] towerMap;
 
     public static float cash;
+    public static float gameSpeed;
+
     public Text cashtext;
     public Text Date;
+
     private int[] daysInMonths;
     public static float hour;
     private float day;
     private int month;
     private float year;
     private float daysInMonth;
-    public static float gameSpeed;
+    
 
 
 	// Use this for initialization

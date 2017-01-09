@@ -12,6 +12,7 @@ public class Building : MonoBehaviour {
     private int wVal;
     private int hVal;
     private float cost;
+    private float desirability;
 
     public void setSprite(Sprite s)
     {
@@ -27,6 +28,10 @@ public class Building : MonoBehaviour {
     public void setType(int i)
     {
         buildingType = i;
+    }
+    public void setDesirability(float f)
+    {
+        desirability = f;
     }
 
     public void Init(int w, int h)
@@ -54,5 +59,9 @@ public class Building : MonoBehaviour {
     public void setIsOccupied(bool b)
     {
         occupied = b;
+    }
+    public int getBuildingType()
+    {
+        return buildingType;
     }
 }
