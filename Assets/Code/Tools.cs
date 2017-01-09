@@ -14,11 +14,11 @@ public class Tools : MonoBehaviour{
 
     private void setToolCost(int i)
     {
-        if(i == 1)
+        if(i == 0)
         {
             currentToolCost = 100f;
         }
-        else if(i == 2)
+        else if(i == 4)
         {
             currentToolCost = 200f;
         }

@@ -12,6 +12,7 @@ public class Building : MonoBehaviour {
     private int wVal;
     private int hVal;
     private float cost;
+    [SerializeField]
     private float desirability;
 
     public void setSprite(Sprite s)
@@ -64,4 +65,10 @@ public class Building : MonoBehaviour {
     {
         return buildingType;
     }
+    public void getCoordinates(out int x, out int y)
+    {
+        x = wVal;
+        y = hVal;
+    }
+
 }
