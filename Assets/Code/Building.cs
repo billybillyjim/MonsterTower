@@ -8,6 +8,8 @@ public class Building : MonoBehaviour {
     private Sprite buildingSprite;
     [SerializeField]
     private int buildingType;
+    [SerializeField]
+    private int width;
     private bool occupied;
     private int wVal;
     private int hVal;
@@ -25,6 +27,7 @@ public class Building : MonoBehaviour {
         buildingSprite = s;
         GetComponent<SpriteRenderer>().sprite = s;
         setType(i);
+        width = Tools.toolWidth;
     }
     public void setType(int i)
     {
@@ -70,5 +73,17 @@ public class Building : MonoBehaviour {
         x = wVal;
         y = hVal;
     }
+    public int getX()
+    {
+        return wVal;
 
+    }
+    public int getY()
+    {
+        return hVal;
+    }
+    public int getWidth()
+    {
+        return width;
+    }
 }

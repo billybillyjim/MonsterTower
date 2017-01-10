@@ -13,8 +13,12 @@ public class TowerMap : MonoBehaviour {
     public GameObject building;
     [SerializeField]
     private Building[,] towerMap;
+    //[SerializeField]
+    //private List<Sprite> buildingSpriteList = new List<Sprite>();
     [SerializeField]
-    private List<Sprite> buildingSpriteList = new List<Sprite>();
+    private List<List<Sprite>> buildingSpritesList = new List<List<Sprite>>();
+    [SerializeField]
+    private List<Building> elevatorList = new List<Building>();
 
 	// Use this for initialization
 	void Start () {
@@ -41,7 +45,7 @@ public class TowerMap : MonoBehaviour {
                 towerMap[i, j] = b.GetComponent<Building>();
                 if (j < 3)
                 {
-                    b.GetComponent<Building>().setSprite(buildingSpriteList[3]);
+                    b.GetComponent<Building>().setSprite(buildingSpritesList[3][0]);
                     b.GetComponent<Building>().setIsOccupied(true);
                 }
                 b.GetComponent<Building>().Init(i, j);
@@ -52,22 +56,87 @@ public class TowerMap : MonoBehaviour {
     //TODO: Make it not suck
     private void loadSpriteList()
     {
-        
-        Sprite[] e = Resources.LoadAll<Sprite>("Buildings/Offices");
-        Sprite l = Resources.Load("Buildings/Lobby", typeof(Sprite)) as Sprite;
-        Sprite p = Resources.Load("Buildings/EmptyHalf", typeof(Sprite)) as Sprite;
-        Sprite d = Resources.Load("Buildings/Dirt", typeof(Sprite)) as Sprite;
-        Sprite r = Resources.Load("Buildings/Restaurant", typeof(Sprite)) as Sprite;
-        
-        buildingSpriteList.AddRange(e);
-        //#3
-        buildingSpriteList.Add(d);
-        //#4
-        buildingSpriteList.Add(r);
-        //#5
-        buildingSpriteList.Add(l);
-        
-        buildingSpriteList.Add(p);        
+
+        List<Sprite> allSprites = new List<Sprite>();
+        List<Sprite> officeSprites = new List<Sprite>();
+        List<Sprite> restaurantSprites = new List<Sprite>();
+        List<Sprite> hotelSprites = new List<Sprite>();
+        List<Sprite> hotel2BedSprites = new List<Sprite>();
+        List<Sprite> condoSprites = new List<Sprite>();
+        List<Sprite> stairSprites = new List<Sprite>();
+        List<Sprite> cafeSprites = new List<Sprite>();
+        List<Sprite> dirtSprites = new List<Sprite>();
+        List<Sprite> elevatorSprites = new List<Sprite>();
+        List<Sprite> emptySprites = new List<Sprite>();
+ 
+        allSprites.AddRange(Resources.LoadAll<Sprite>("Buildings"));
+
+        foreach (Sprite s in allSprites)
+        {
+            char n = s.name[0];
+            if (n == 'o')
+            {
+                officeSprites.Add(s);
+            }
+            else if(n == 'r')
+            {
+                restaurantSprites.Add(s);
+            }
+            else if (n == 'w')
+            {
+                cafeSprites.Add(s);
+            }
+            else if (n == 'd')
+            {
+                dirtSprites.Add(s);
+            }
+            else if(n == 'e')
+            {
+                elevatorSprites.Add(s);
+            }
+            else if (n == 'c')
+            {
+                condoSprites.Add(s);
+            }
+            else if (n == 'h')
+            {
+                hotelSprites.Add(s);
+            }
+            else if (n == 't')
+            {
+                hotel2BedSprites.Add(s);
+            }
+            else if (n == 's')
+            {
+                stairSprites.Add(s);
+            }
+            else if (n == '1')
+            {
+                emptySprites.Add(s);
+            }
+
+        }
+        //0
+        buildingSpritesList.Add(officeSprites);
+        //1
+        buildingSpritesList.Add(restaurantSprites);
+        //2
+        buildingSpritesList.Add(elevatorSprites);
+        //3
+        buildingSpritesList.Add(dirtSprites);
+        //4
+        buildingSpritesList.Add(cafeSprites);
+        //5
+        buildingSpritesList.Add(hotelSprites);
+        //6
+        buildingSpritesList.Add(hotel2BedSprites);
+        //7
+        buildingSpritesList.Add(condoSprites);
+        Debug.Log(condoSprites.Count);
+        //8
+        buildingSpritesList.Add(stairSprites);
+        //9
+        buildingSpritesList.Add(emptySprites);
 
     }
 
@@ -75,17 +144,20 @@ public class TowerMap : MonoBehaviour {
     public void build(int x, int y)
     {
         if(checkIfBuildable(x,y) && GameRun.cash >= Tools.currentToolCost){
-            if(Tools.currentTool == 0)
-            {
-                towerMap[x, y].setSprite(buildingSpriteList[Random.Range(0,3)], Tools.currentTool);
-            }
-            else
-            {
-                towerMap[x, y].setSprite(buildingSpriteList[Tools.currentTool], Tools.currentTool);
-            }            
-            
+
+            towerMap[x, y].setSprite(buildingSpritesList[Tools.currentTool][Random.Range(0, buildingSpritesList[Tools.currentTool].Count)], Tools.currentTool);
+          
+                GameRun.chargeMoney(Tools.currentToolCost);
+                occupy(x, y);
+                setDesirability(towerMap[x, y]);
+
+       
+        }
+        else if(Tools.currentTool == 9)
+        {
+            towerMap[x, y].setSprite(buildingSpritesList[Tools.currentTool][Random.Range(0, buildingSpritesList[Tools.currentTool].Count)], Tools.currentTool);
             GameRun.chargeMoney(Tools.currentToolCost);
-            occupy(x, y);
+            bulldoze(x, y);
             setDesirability(towerMap[x, y]);
         }       
     }
@@ -93,7 +165,7 @@ public class TowerMap : MonoBehaviour {
     //TODO:Make it simple
     private bool checkIfBuildable(int x, int y)
     {
-        if(Tools.currentTool == 0 || Tools.currentTool == 4)
+        if(Tools.toolWidth == 2)
         {
             if(x != towerWidth && 
                 !towerMap[x + 1, y].getIsOccupied() &&
@@ -104,10 +176,23 @@ public class TowerMap : MonoBehaviour {
                 return true;
             }
         }
-        else if(Tools.currentTool == 1)
+        else if(Tools.toolWidth == 1)
         {
             if(!towerMap[x,y].getIsOccupied() &&
                 towerMap[x, y - 1].getIsOccupied())
+            {
+                return true;
+            }
+        }
+        else if (Tools.toolWidth == 3)
+        {
+            if (x != towerWidth &&
+                !towerMap[x + 2, y].getIsOccupied() &&
+                !towerMap[x + 1, y].getIsOccupied() &&
+                !towerMap[x, y].getIsOccupied() &&
+                towerMap[x, y - 1].getIsOccupied() &&
+                towerMap[x + 1, y - 1].getIsOccupied() &&
+                towerMap[x + 2, y - 1].getIsOccupied())
             {
                 return true;
             }
@@ -119,17 +204,40 @@ public class TowerMap : MonoBehaviour {
     //Fills in used spaces.
     private void occupy(int x, int y)
     {
-        if(Tools.currentTool == 0 || Tools.currentTool == 4)
+        if(Tools.toolWidth == 2)
         {
             towerMap[x, y].setIsOccupied(true);
             towerMap[x + 1, y].setIsOccupied(true);
         }
-        else if(Tools.currentTool == 1)
+        else if(Tools.toolWidth == 1)
         {
             towerMap[x, y].setIsOccupied(true);
         }
+        else if (Tools.toolWidth == 3)
+        {
+            towerMap[x, y].setIsOccupied(true);
+            towerMap[x + 1, y].setIsOccupied(true);
+            towerMap[x + 2, y].setIsOccupied(true);
+        }
     }
-
+    private void bulldoze(int x, int y)
+    {
+        if(towerMap[x,y].getWidth() == 1)
+        {
+            towerMap[x, y].setIsOccupied(false);
+        }
+        if (towerMap[x, y].getWidth() == 2)
+        {
+            towerMap[x, y].setIsOccupied(false);
+            towerMap[x + 1, y].setIsOccupied(false);
+        }
+        if (towerMap[x, y].getWidth() == 3)
+        {
+            towerMap[x, y].setIsOccupied(false);
+            towerMap[x + 1, y].setIsOccupied(false);
+            towerMap[x + 2, y].setIsOccupied(false);
+        }
+    }
     private void setDesirability(Building b)
     {
         int x;
@@ -147,7 +255,7 @@ public class TowerMap : MonoBehaviour {
             }
         }
         b.setDesirability(desire);
-        Debug.Log(desire);
+        
     }
 
     public Building[,] getTowerMap()
@@ -156,6 +264,7 @@ public class TowerMap : MonoBehaviour {
     }
 
     //TODO:Make not suck
+    //Should make prebuilt arrays of adjacency for quick and easy to read code.
     public Building[,] getNeighbors(int x, int y)
     {
         Building[,] neighbors = new Building[7,7];
@@ -173,34 +282,7 @@ public class TowerMap : MonoBehaviour {
                 
             }
         }
-        /*
-        neighbors[2, 3] = towerMap[x - 1, y];
-        neighbors[3, 2] = towerMap[x, y - 1];
-        neighbors[4, 3] = towerMap[x + 1, y];
-        neighbors[3, 4] = towerMap[x, y + 1];
 
-        neighbors[3, 1] = towerMap[x, y - 2];
-        neighbors[4, 2] = towerMap[x + 1, y - 1];
-        neighbors[5, 3] = towerMap[x + 2, y];
-        neighbors[4, 4] = towerMap[x + 1, y + 1];
-        neighbors[3, 5] = towerMap[x, y + 2];
-        neighbors[2, 4] = towerMap[x - 1, y + 1];
-        neighbors[1, 3] = towerMap[x - 2, y];
-        neighbors[2, 2] = towerMap[x - 1, y - 1];
-
-        neighbors[3, 0] = towerMap[x, y - 3];
-        neighbors[2, 1] = towerMap[x - 1, y - 2];
-        neighbors[1, 2] = towerMap[x - 2, y - 1];
-        neighbors[0, 3] = towerMap[x - 3, y];
-        neighbors[1, 4] = towerMap[x - 2, y + 1];
-        neighbors[2, 5] = towerMap[x - 1, y + 2];
-        neighbors[3, 6] = towerMap[x, y + 3];
-        neighbors[4, 5] = towerMap[x + 1, y + 2];
-        neighbors[5, 4] = towerMap[x + 2, y + 1];
-        neighbors[6, 3] = towerMap[x + 3, y];
-        neighbors[5, 2] = towerMap[x + 2, y - 1];
-        neighbors[4, 1] = towerMap[x + 1, y - 2];
-        */
 
         return neighbors;
     }
@@ -216,6 +298,21 @@ public class TowerMap : MonoBehaviour {
                 desireChart[i, j] = int.Parse(lineData[j]);
             }
         }
+    }
+    public List<Building> getElevators()
+    {
+        return elevatorList;
+    }
+    public Building findElevator(int y)
+    {
+        foreach(Building b in elevatorList)
+        {
+            if (y == b.getY())
+            {
+                return b;
+            }
+        }
+        return null;
     }
     
 }
