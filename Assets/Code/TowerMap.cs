@@ -19,17 +19,27 @@ public class TowerMap : MonoBehaviour {
     private List<List<Sprite>> buildingSpritesList = new List<List<Sprite>>();
     [SerializeField]
     private List<Building> elevatorList = new List<Building>();
+    public GameObject witch;
 
 	// Use this for initialization
 	void Start () {
-        towerHeight = 200;
-        towerWidth = 100;
+        towerHeight = 140;
+        towerWidth = 64;
         sizeRatio = .5f;
 	    towerMap = new Building[towerWidth,towerHeight];
 
         loadSpriteList();
         loadDesireChart();
         createTower();
+        InvokeRepeating("SpawnWitch", 10, 1);
+        
+    }
+    private void SpawnWitch()
+    {
+        GameObject w = (GameObject)Instantiate(witch, new Vector3(2, 20, -2), Quaternion.identity);
+        GameObject g = w.gameObject;
+        
+        g.GetComponent<Character>().Init(towerMap[6, 41]);
     }
 
 	//Makes the whole tower
@@ -43,27 +53,35 @@ public class TowerMap : MonoBehaviour {
                 GameObject t = (GameObject)Instantiate(building, new Vector3(i * sizeRatio, j * sizeRatio), Quaternion.identity);
                 GameObject b = t.gameObject;
                 towerMap[i, j] = b.GetComponent<Building>();
-                if (j == 3)
+                if (j == 40)
                 {
                     b.GetComponent<Building>().setSprite(buildingSpritesList[3][0]);
                     b.GetComponent<Building>().setIsOccupied(true);
                 }
-                if (j == 2)
+                if (j > 15 && j < 40)
                 {
                     b.GetComponent<Building>().setSprite(buildingSpritesList[3][1]);
                     b.GetComponent<Building>().setIsOccupied(true);
                 }
-                if (j == 1)
+                if (j == 15)
                 {
                     b.GetComponent<Building>().setSprite(buildingSpritesList[3][2]);
                     b.GetComponent<Building>().setIsOccupied(true);
                 }
-                if (j == 0)
+                if (j < 15)
                 {
                     b.GetComponent<Building>().setSprite(buildingSpritesList[3][3]);
                     b.GetComponent<Building>().setIsOccupied(true);
                 }
                 b.GetComponent<Building>().Init(i, j);
+                if(j > 40)
+                {
+                    b.GetComponent<Building>().setFloor(j - 40);
+                }
+                else
+                {
+                    b.GetComponent<Building>().setFloor(j - 41);
+                }
             }
         }
     }
@@ -165,6 +183,10 @@ public class TowerMap : MonoBehaviour {
                 GameRun.chargeMoney(Tools.currentToolCost);
                 occupy(x, y);
                 setDesirability(towerMap[x, y]);
+            if(Tools.currentTool == 2)
+            {
+                elevatorList.Add(towerMap[x, y]);
+            }
        
         }
         if(Tools.currentTool == 9)
@@ -242,6 +264,10 @@ public class TowerMap : MonoBehaviour {
     {
         int chance = Random.Range(0, 50);
         int w = towerMap[x, y].getWidth();
+        if(towerMap[x,y].getBuildingType() == 2)
+        {
+
+        }
         if (chance > 45)
         {
             for (int i = 0; i < w; i++)
@@ -331,10 +357,12 @@ public class TowerMap : MonoBehaviour {
     }
     public Building findElevator(int y)
     {
+        Debug.Log(elevatorList.Count);
         foreach(Building b in elevatorList)
         {
-            if (y == b.getY())
+            if (y == b.getFloor())
             {
+                Debug.Log(y);
                 return b;
             }
         }

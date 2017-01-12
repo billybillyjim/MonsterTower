@@ -11,6 +11,8 @@ public class Building : MonoBehaviour {
     [SerializeField]
     private int width;
     [SerializeField]
+    private int floor;
+
     private bool occupied;
     private int wVal;
     private int hVal;
@@ -86,5 +88,13 @@ public class Building : MonoBehaviour {
     public int getWidth()
     {
         return width;
+    }
+    public void setFloor(int i)
+    {
+        floor = i;
+    }
+    public int getFloor()
+    {
+        return floor;
     }
 }
