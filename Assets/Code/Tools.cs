@@ -30,7 +30,7 @@ public class Tools : MonoBehaviour{
         if(i == 0 || i == 4 || i == 6 || i == 7){
             toolWidth = 2;
         }
-        else if(i == 2 || i == 3 || i == 5)
+        else if(i == 2 || i == 3 || i == 5 || i == 9)
         {
             toolWidth = 1;
         }

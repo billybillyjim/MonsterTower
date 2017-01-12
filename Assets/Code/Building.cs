@@ -10,6 +10,7 @@ public class Building : MonoBehaviour {
     private int buildingType;
     [SerializeField]
     private int width;
+    [SerializeField]
     private bool occupied;
     private int wVal;
     private int hVal;

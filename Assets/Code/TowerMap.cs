@@ -43,9 +43,24 @@ public class TowerMap : MonoBehaviour {
                 GameObject t = (GameObject)Instantiate(building, new Vector3(i * sizeRatio, j * sizeRatio), Quaternion.identity);
                 GameObject b = t.gameObject;
                 towerMap[i, j] = b.GetComponent<Building>();
-                if (j < 3)
+                if (j == 3)
                 {
                     b.GetComponent<Building>().setSprite(buildingSpritesList[3][0]);
+                    b.GetComponent<Building>().setIsOccupied(true);
+                }
+                if (j == 2)
+                {
+                    b.GetComponent<Building>().setSprite(buildingSpritesList[3][1]);
+                    b.GetComponent<Building>().setIsOccupied(true);
+                }
+                if (j == 1)
+                {
+                    b.GetComponent<Building>().setSprite(buildingSpritesList[3][2]);
+                    b.GetComponent<Building>().setIsOccupied(true);
+                }
+                if (j == 0)
+                {
+                    b.GetComponent<Building>().setSprite(buildingSpritesList[3][3]);
                     b.GetComponent<Building>().setIsOccupied(true);
                 }
                 b.GetComponent<Building>().Init(i, j);
@@ -143,22 +158,25 @@ public class TowerMap : MonoBehaviour {
     //Builds at given coordinates using the current tool.
     public void build(int x, int y)
     {
-        if(checkIfBuildable(x,y) && GameRun.cash >= Tools.currentToolCost){
+        if(checkIfBuildable(x,y) && GameRun.cash >= Tools.currentToolCost && Tools.currentTool != 9){
 
             towerMap[x, y].setSprite(buildingSpritesList[Tools.currentTool][Random.Range(0, buildingSpritesList[Tools.currentTool].Count)], Tools.currentTool);
           
                 GameRun.chargeMoney(Tools.currentToolCost);
                 occupy(x, y);
                 setDesirability(towerMap[x, y]);
-
        
         }
-        else if(Tools.currentTool == 9)
+        if(Tools.currentTool == 9)
         {
-            towerMap[x, y].setSprite(buildingSpritesList[Tools.currentTool][Random.Range(0, buildingSpritesList[Tools.currentTool].Count)], Tools.currentTool);
-            GameRun.chargeMoney(Tools.currentToolCost);
-            bulldoze(x, y);
-            setDesirability(towerMap[x, y]);
+            if(towerMap[x,y].getBuildingType() != 9)
+            {
+                bulldoze(x, y);
+               
+                GameRun.chargeMoney(Tools.currentToolCost);
+                
+                setDesirability(towerMap[x, y]);
+            }            
         }       
     }
     //Checks to see if you can build somewhere based on the current tool.
@@ -222,21 +240,29 @@ public class TowerMap : MonoBehaviour {
     }
     private void bulldoze(int x, int y)
     {
-        if(towerMap[x,y].getWidth() == 1)
+        int chance = Random.Range(0, 50);
+        int w = towerMap[x, y].getWidth();
+        if (chance > 45)
         {
-            towerMap[x, y].setIsOccupied(false);
+            for (int i = 0; i < w; i++)
+            {
+                towerMap[x + i, y].setIsOccupied(false);
+                towerMap[x + i, y].setSprite(buildingSpritesList[Tools.currentTool][Random.Range(0, buildingSpritesList[Tools.currentTool].Count)], Tools.currentTool);
+                
+            }
         }
-        if (towerMap[x, y].getWidth() == 2)
+        else
         {
-            towerMap[x, y].setIsOccupied(false);
-            towerMap[x + 1, y].setIsOccupied(false);
+            for (int i = 0; i < w; i++)
+            {
+                towerMap[x + i, y].setIsOccupied(false);
+                towerMap[x + i, y].setSprite(buildingSpritesList[Tools.currentTool][0], Tools.currentTool);
+
+            }
         }
-        if (towerMap[x, y].getWidth() == 3)
-        {
-            towerMap[x, y].setIsOccupied(false);
-            towerMap[x + 1, y].setIsOccupied(false);
-            towerMap[x + 2, y].setIsOccupied(false);
-        }
+        
+       
+        
     }
     private void setDesirability(Building b)
     {
