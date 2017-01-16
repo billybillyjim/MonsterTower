@@ -12,7 +12,7 @@ public class Building : MonoBehaviour {
     private int width;
     [SerializeField]
     private int floor;
-
+    private float rentPay;
     private bool occupied;
     private int wVal;
     private int hVal;
@@ -31,6 +31,7 @@ public class Building : MonoBehaviour {
         GetComponent<SpriteRenderer>().sprite = s;
         setType(i);
         width = Tools.toolWidth;
+        rentPay = 100;
     }
     public void setType(int i)
     {
@@ -96,5 +97,13 @@ public class Building : MonoBehaviour {
     public int getFloor()
     {
         return floor;
+    }
+    public void setRent(float r)
+    {
+        rentPay = r;
+    }
+    public float getRent()
+    {
+        return rentPay;
     }
 }

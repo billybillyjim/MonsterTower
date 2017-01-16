@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 public class Background : MonoBehaviour {
 
-    private int backgroundWidth = 80;
-    private int backgroundHeight = 250;
+    private int backgroundWidth = 55;
+    private int backgroundHeight = 150;
     private Transform[,] bgUnits;
     [SerializeField]
     private GameObject bgUnit;

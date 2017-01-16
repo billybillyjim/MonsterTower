@@ -24,14 +24,14 @@ public class TowerMap : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         towerHeight = 140;
-        towerWidth = 64;
+        towerWidth = 100;
         sizeRatio = .5f;
 	    towerMap = new Building[towerWidth,towerHeight];
 
         loadSpriteList();
         loadDesireChart();
         createTower();
-        InvokeRepeating("SpawnWitch", 10, 1);
+        //InvokeRepeating("SpawnWitch", 10, 1);
         
     }
     private void SpawnWitch()
@@ -208,6 +208,7 @@ public class TowerMap : MonoBehaviour {
         if(Tools.toolWidth == 2)
         {
             if(x != towerWidth && 
+                x + 1 <= towerWidth &&
                 !towerMap[x + 1, y].getIsOccupied() &&
                 !towerMap[x, y].getIsOccupied() &&
                 towerMap[x, y - 1].getIsOccupied() &&
@@ -227,6 +228,7 @@ public class TowerMap : MonoBehaviour {
         else if (Tools.toolWidth == 3)
         {
             if (x != towerWidth &&
+                x + 1 <= towerWidth &&
                 !towerMap[x + 2, y].getIsOccupied() &&
                 !towerMap[x + 1, y].getIsOccupied() &&
                 !towerMap[x, y].getIsOccupied() &&
@@ -326,10 +328,15 @@ public class TowerMap : MonoBehaviour {
         {
             for(int j = -3; j < 4; j++)
             {   
-                if(towerMap[x + i, x + j] != null && (i + j) >= -3 && (i + j <= 2))
-                {
-                    neighbors[3 + i, 3 + j] = towerMap[x + i, y + j];
-                   // Debug.Log((3 + i) + ", " + (3 + j) + ":" + (x + i) + ", " + (y + j));
+                //if(towerMap[x + i, x + j] != null && (i + j) >= -3 && (i + j <= 2))
+                    if (x + i >= 0 && 
+                    (x + i) < towerWidth && 
+                    y + j >= 0 && 
+                    (y + j) < towerHeight && 
+                    (i + j) >= -3 && 
+                    (i + j <= 2))
+                    {
+                    neighbors[3 + i, 3 + j] = towerMap[x + i, y + j];                   
                 }
                 
             }

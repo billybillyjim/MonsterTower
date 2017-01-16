@@ -48,6 +48,7 @@ public class GameRun : MonoBehaviour {
             if(day > daysInMonth)
             {
                 month++;
+                earnRent();
 
                 if(year % 4 == 0 && year % 400 == 0 && year % 100 != 0)
                 {
@@ -70,8 +71,19 @@ public class GameRun : MonoBehaviour {
                 }
             }
         }
-        Date.text = "Date:" + daysInMonth + ", " + (month + 1) + "/" + day + "/" + year + " and " + hour + " Hours";
+        Date.text = "Date:" + (month + 1) + "/" + day + "/" + year + " and " + hour + " Hours";
 
+    }
+
+    private void earnRent()
+    {
+        towerMap = tower.getTowerMap();
+        float total = 0;
+        foreach(Building b in towerMap)
+        {
+            total += b.getRent();
+        }
+        cash += total;
     }
 
     public static void chargeMoney(float f)

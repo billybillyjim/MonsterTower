@@ -6,6 +6,7 @@ public class Tools : MonoBehaviour{
     public static int currentTool;
     public static float currentToolCost;
     public static int toolWidth;
+    private float[] costArray = new float[20];
 
     public void setTool(int i)
     {
@@ -13,17 +14,34 @@ public class Tools : MonoBehaviour{
         setToolCost(i);
         setToolWidth(i);
     }
+    void Start()
+    {
+        //Office
+        costArray[0] = 100f;
+        //Restaurant
+        costArray[1] = 100f;
+        //Elevator
+        costArray[2] = 100f;
+        //Dirt
+        costArray[3] = 100f;
+        //Cafe
+        costArray[4] = 100f;
+        //Hotel
+        costArray[5] = 100f;
+        //2BedHotel
+        costArray[6] = 100f;
+        //Condo
+        costArray[7] = 100f;
+        //Stairs
+        costArray[8] = 100f;
+        //Empty
+        costArray[9] = 100f;
+       
+    }
 
     private void setToolCost(int i)
     {
-        if(i == 0)
-        {
-            currentToolCost = 100f;
-        }
-        else if(i == 4)
-        {
-            currentToolCost = 200f;
-        }
+        currentToolCost = costArray[currentTool];
     }
     public void setToolWidth(int i)
     {
