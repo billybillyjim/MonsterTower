@@ -15,17 +15,29 @@ public class GameRun : MonoBehaviour {
     public Text cashtext;
     public Text Date;
 
+    public Text rentTotalText;
+    public Text utilityTotalText;
+
     private int[] daysInMonths;
     public static float hour;
     private float day;
     private int month;
     private float year;
     private float daysInMonth;
-    
+    private float lastMonthRent;
+    private float lastMonthUtilities;
+
+    private float humanOfficeRent;
+    private float zombieOfficeRent;
+    private float humanRestaurantRent;
+    private float humanHotelRent;
+    private float humanCondoRent;
+
+    enum Days { Sat, Sun, Mon, Tue, Wed, Thu, Fri };
 
 
-	// Use this for initialization
-	void Start () {
+    // Use this for initialization
+    void Start () {
         gameSpeed = .3f;
         cash = 100000;
         month = 0;
@@ -38,7 +50,8 @@ public class GameRun : MonoBehaviour {
 	}
 	void Update()
     {
-        cashtext.text = "$" + cash;
+        
+        
         hour += gameSpeed;
         if(hour >= 24)
         {
@@ -49,6 +62,7 @@ public class GameRun : MonoBehaviour {
             {
                 month++;
                 earnRent();
+                payUtilities();
 
                 if(year % 4 == 0 && year % 400 == 0 && year % 100 != 0)
                 {
@@ -71,7 +85,14 @@ public class GameRun : MonoBehaviour {
                 }
             }
         }
+         setTexts();
+    }
+    private void setTexts()
+    {
         Date.text = "Date:" + (month + 1) + "/" + day + "/" + year + " and " + hour + " Hours";
+        cashtext.text = "$" + cash;
+        rentTotalText.text = "$" + lastMonthRent;
+        utilityTotalText.text = "$" + lastMonthUtilities;
 
     }
 
@@ -84,6 +105,18 @@ public class GameRun : MonoBehaviour {
             total += b.getRent();
         }
         cash += total;
+        lastMonthRent = total;
+    }
+    private void payUtilities()
+    {
+        towerMap = tower.getTowerMap();
+        float total = 0;
+        foreach(Building b in towerMap)
+        {
+            total += b.getUtilityPay();
+        }
+        cash -= total;
+        lastMonthUtilities = total;
     }
 
     public static void chargeMoney(float f)

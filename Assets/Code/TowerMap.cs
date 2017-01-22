@@ -20,14 +20,15 @@ public class TowerMap : MonoBehaviour {
     [SerializeField]
     private List<Building> elevatorList = new List<Building>();
     public GameObject witch;
+    private enum type { Office, Restaurant, Elevator, Dirt, Cafe, Hotel, HotelTwoBed, Condo, Stairs, Empty };
 
-	// Use this for initialization
-	void Start () {
+    // Use this for initialization
+    void Start () {
         towerHeight = 140;
         towerWidth = 100;
         sizeRatio = .5f;
 	    towerMap = new Building[towerWidth,towerHeight];
-
+        
         loadSpriteList();
         loadDesireChart();
         createTower();
@@ -56,22 +57,23 @@ public class TowerMap : MonoBehaviour {
                 if (j == 40)
                 {
                     b.GetComponent<Building>().setSprite(buildingSpritesList[3][0]);
-                    b.GetComponent<Building>().setIsOccupied(true);
+                    
+
                 }
                 if (j > 15 && j < 40)
                 {
                     b.GetComponent<Building>().setSprite(buildingSpritesList[3][1]);
-                    b.GetComponent<Building>().setIsOccupied(true);
+                    
                 }
                 if (j == 15)
                 {
                     b.GetComponent<Building>().setSprite(buildingSpritesList[3][2]);
-                    b.GetComponent<Building>().setIsOccupied(true);
+                    
                 }
                 if (j < 15)
                 {
                     b.GetComponent<Building>().setSprite(buildingSpritesList[3][3]);
-                    b.GetComponent<Building>().setIsOccupied(true);
+                    
                 }
                 b.GetComponent<Building>().Init(i, j);
                 if(j > 40)
@@ -81,6 +83,7 @@ public class TowerMap : MonoBehaviour {
                 else
                 {
                     b.GetComponent<Building>().setFloor(j - 41);
+                    b.GetComponent<Building>().setDirt(true);
                 }
             }
         }
@@ -101,7 +104,8 @@ public class TowerMap : MonoBehaviour {
         List<Sprite> dirtSprites = new List<Sprite>();
         List<Sprite> elevatorSprites = new List<Sprite>();
         List<Sprite> emptySprites = new List<Sprite>();
- 
+        List<Sprite> hotelSuiteSprites = new List<Sprite>();
+
         allSprites.AddRange(Resources.LoadAll<Sprite>("Buildings"));
 
         foreach (Sprite s in allSprites)
@@ -147,6 +151,10 @@ public class TowerMap : MonoBehaviour {
             {
                 emptySprites.Add(s);
             }
+            else if (n == 'q')
+            {
+                hotelSuiteSprites.Add(s);
+            }
 
         }
         //0
@@ -165,11 +173,12 @@ public class TowerMap : MonoBehaviour {
         buildingSpritesList.Add(hotel2BedSprites);
         //7
         buildingSpritesList.Add(condoSprites);
-        Debug.Log(condoSprites.Count);
         //8
         buildingSpritesList.Add(stairSprites);
         //9
         buildingSpritesList.Add(emptySprites);
+        //10
+        buildingSpritesList.Add(hotelSuiteSprites);
 
     }
 
@@ -205,62 +214,56 @@ public class TowerMap : MonoBehaviour {
     //TODO:Make it simple
     private bool checkIfBuildable(int x, int y)
     {
-        if(Tools.toolWidth == 2)
+        if (towerMap[x, y].getFloor() > 0)
         {
-            if(x != towerWidth && 
-                x + 1 <= towerWidth &&
-                !towerMap[x + 1, y].getIsOccupied() &&
-                !towerMap[x, y].getIsOccupied() &&
-                towerMap[x, y - 1].getIsOccupied() &&
-                towerMap[x + 1, y - 1].getIsOccupied())
+
+            for (int i = 0; i < Tools.toolWidth; i++)
             {
-                return true;
-            }
-        }
-        else if(Tools.toolWidth == 1)
-        {
-            if(!towerMap[x,y].getIsOccupied() &&
-                towerMap[x, y - 1].getIsOccupied())
-            {
-                return true;
-            }
-        }
-        else if (Tools.toolWidth == 3)
-        {
-            if (x != towerWidth &&
-                x + 1 <= towerWidth &&
-                !towerMap[x + 2, y].getIsOccupied() &&
-                !towerMap[x + 1, y].getIsOccupied() &&
-                !towerMap[x, y].getIsOccupied() &&
-                towerMap[x, y - 1].getIsOccupied() &&
-                towerMap[x + 1, y - 1].getIsOccupied() &&
-                towerMap[x + 2, y - 1].getIsOccupied())
-            {
-                return true;
+
+                if (x != towerWidth &&
+               x + i <= towerWidth &&
+               !towerMap[x + i, y].getIsOccupied() &&
+               (towerMap[x + i, y - 1].getIsOccupied() || towerMap[x + i, y - 1].getDirt()))
+                {
+
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
 
-        return false;
+        else if (towerMap[x, y].getFloor() < 0)
+        {
+            for (int i = 0; i < Tools.toolWidth; i++)
+            {
+                if (x + i <= towerWidth &&
+                    !towerMap[x + i, y].getIsOccupied() &&
+                    towerMap[x + i, y + 1].getIsOccupied())
+                {
+
+                }
+                else
+                {
+                    return false;
+                }
+
+            }
+        }
+   
+        return true;
     }
 
     //Fills in used spaces.
     private void occupy(int x, int y)
     {
-        if(Tools.toolWidth == 2)
+        for(int i = 0; i < Tools.toolWidth; i++)
         {
-            towerMap[x, y].setIsOccupied(true);
-            towerMap[x + 1, y].setIsOccupied(true);
+            towerMap[x + i, y].setIsOccupied(true);
+            
         }
-        else if(Tools.toolWidth == 1)
-        {
-            towerMap[x, y].setIsOccupied(true);
-        }
-        else if (Tools.toolWidth == 3)
-        {
-            towerMap[x, y].setIsOccupied(true);
-            towerMap[x + 1, y].setIsOccupied(true);
-            towerMap[x + 2, y].setIsOccupied(true);
-        }
+
     }
     private void bulldoze(int x, int y)
     {

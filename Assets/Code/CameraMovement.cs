@@ -4,7 +4,7 @@ using System.Collections;
 public class CameraMovement : MonoBehaviour {
 
     [SerializeField]
-    private float movementSpeed = .3f;
+    private float movementSpeed = .2f;
     private float minX = 6;
     private float minY = 4;
     private float maxX = 41;

@@ -13,12 +13,17 @@ public class Building : MonoBehaviour {
     [SerializeField]
     private int floor;
     private float rentPay;
-    private bool occupied;
+    private float utilityPay;
+    [SerializeField]
+    private bool isOccupied;
+    private bool isDirt;
     private int wVal;
     private int hVal;
     private float cost;
     [SerializeField]
     private float desirability;
+    
+
 
     public void setSprite(Sprite s)
     {
@@ -32,6 +37,7 @@ public class Building : MonoBehaviour {
         setType(i);
         width = Tools.toolWidth;
         rentPay = 100;
+        utilityPay = i * 5;        
     }
     public void setType(int i)
     {
@@ -62,11 +68,11 @@ public class Building : MonoBehaviour {
 
     public bool getIsOccupied()
     {
-        return occupied;
+        return isOccupied;
     }
     public void setIsOccupied(bool b)
     {
-        occupied = b;
+        isOccupied = b;
     }
     public int getBuildingType()
     {
@@ -105,5 +111,17 @@ public class Building : MonoBehaviour {
     public float getRent()
     {
         return rentPay;
+    }
+    public void setDirt(bool b)
+    {
+        isDirt = b;
+    }
+    public bool getDirt()
+    {
+        return isDirt;
+    }
+    public float getUtilityPay()
+    {
+        return utilityPay;
     }
 }

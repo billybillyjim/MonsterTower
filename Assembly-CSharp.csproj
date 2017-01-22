@@ -45,13 +45,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Character.cs" />
-     <Compile Include="Assets\Clock.cs" />
-     <Compile Include="Assets\Cloud.cs" />
+     <Compile Include="Assets\Code\AudioManager.cs" />
      <Compile Include="Assets\Code\Background.cs" />
      <Compile Include="Assets\Code\Building.cs" />
      <Compile Include="Assets\Code\CameraMovement.cs" />
+     <Compile Include="Assets\Code\Character.cs" />
+     <Compile Include="Assets\Code\Clock.cs" />
+     <Compile Include="Assets\Code\Cloud.cs" />
+     <Compile Include="Assets\Code\EventManager.cs" />
+     <Compile Include="Assets\Code\Faction.cs" />
+     <Compile Include="Assets\Code\FactionManager.cs" />
      <Compile Include="Assets\Code\GameRun.cs" />
+     <Compile Include="Assets\Code\MinimizePanel.cs" />
      <Compile Include="Assets\Code\Tools.cs" />
      <Compile Include="Assets\Code\TowerMap.cs" />
  <Reference Include="UnityEngine.UI">
