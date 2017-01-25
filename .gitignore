@@ -7,6 +7,8 @@ Desktop.ini
 
 # Recycle Bin used on file shares
 $RECYCLE.BIN/
+Library
+metadeta
 
 # Windows Installer files
 *.cab
@@ -16,6 +18,9 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+*.meta
+*.info
+*.bin
 
 # =========================
 # Operating System Files

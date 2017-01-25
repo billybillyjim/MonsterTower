@@ -11,6 +11,8 @@ public class Building : MonoBehaviour {
     [SerializeField]
     private int width;
     [SerializeField]
+    private int height;
+    [SerializeField]
     private int floor;
     private float rentPay;
     private float utilityPay;
@@ -22,6 +24,8 @@ public class Building : MonoBehaviour {
     private float cost;
     [SerializeField]
     private float desirability;
+    [SerializeField]
+    private int population;
     
 
 
@@ -36,6 +40,7 @@ public class Building : MonoBehaviour {
         GetComponent<SpriteRenderer>().sprite = s;
         setType(i);
         width = Tools.toolWidth;
+        height = Tools.toolHeight;
         rentPay = 100;
         utilityPay = i * 5;        
     }
@@ -64,6 +69,15 @@ public class Building : MonoBehaviour {
         {
             GameObject.Find("Tower").GetComponent<TowerMap>().build(wVal, hVal);
         }       
+    }
+
+    public void moveIn(int i)
+    {
+        population = i;
+    }
+    public void moveOut()
+    {
+        population = 0;
     }
 
     public bool getIsOccupied()
@@ -123,5 +137,17 @@ public class Building : MonoBehaviour {
     public float getUtilityPay()
     {
         return utilityPay;
+    }
+    public int getHeight()
+    {
+        return height;
+    }
+    public int getPopulation()
+    {
+        return population;
+    }
+    public float getDesirability()
+    {
+        return desirability;
     }
 }

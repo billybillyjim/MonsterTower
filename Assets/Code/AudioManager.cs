@@ -14,6 +14,5 @@ public class AudioManager : MonoBehaviour {
     public void playButtonClip()
     {
         audio.PlayOneShot(buttonClick, 1.0f);
-        Debug.Log("played");
     }
 }

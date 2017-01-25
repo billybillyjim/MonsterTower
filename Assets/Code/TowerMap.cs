@@ -6,7 +6,7 @@ public class TowerMap : MonoBehaviour {
     [SerializeField]
     private int towerWidth;
     [SerializeField]
-    private int[,] desireChart = new int[50,50];
+    private float[,] desireChart = new float[50,50];
     [SerializeField]
     private int towerHeight;
     private float sizeRatio;
@@ -20,6 +20,8 @@ public class TowerMap : MonoBehaviour {
     [SerializeField]
     private List<Building> elevatorList = new List<Building>();
     public GameObject witch;
+    [SerializeField]
+    private int totalPopulation;
     private enum type { Office, Restaurant, Elevator, Dirt, Cafe, Hotel, HotelTwoBed, Condo, Stairs, Empty };
 
     // Use this for initialization
@@ -105,6 +107,7 @@ public class TowerMap : MonoBehaviour {
         List<Sprite> elevatorSprites = new List<Sprite>();
         List<Sprite> emptySprites = new List<Sprite>();
         List<Sprite> hotelSuiteSprites = new List<Sprite>();
+        List<Sprite> entertainmentSprites = new List<Sprite>();
 
         allSprites.AddRange(Resources.LoadAll<Sprite>("Buildings"));
 
@@ -155,6 +158,10 @@ public class TowerMap : MonoBehaviour {
             {
                 hotelSuiteSprites.Add(s);
             }
+            else if(n == 'E')
+            {
+                entertainmentSprites.Add(s);
+            }
 
         }
         //0
@@ -179,15 +186,17 @@ public class TowerMap : MonoBehaviour {
         buildingSpritesList.Add(emptySprites);
         //10
         buildingSpritesList.Add(hotelSuiteSprites);
+        //11
+        buildingSpritesList.Add(entertainmentSprites);
 
     }
 
     //Builds at given coordinates using the current tool.
     public void build(int x, int y)
     {
-        if(checkIfBuildable(x,y) && GameRun.cash >= Tools.currentToolCost && Tools.currentTool != 9){
+        if(checkIfBuildable(x,y, Tools.toolHeight) && GameRun.cash >= Tools.currentToolCost && Tools.currentTool != 9){
 
-            towerMap[x, y].setSprite(buildingSpritesList[Tools.currentTool][Random.Range(0, buildingSpritesList[Tools.currentTool].Count)], Tools.currentTool);
+            towerMap[x, y].setSprite(buildingSpritesList[Tools.currentTool][0], Tools.currentTool);
           
                 GameRun.chargeMoney(Tools.currentToolCost);
                 occupy(x, y);
@@ -211,47 +220,51 @@ public class TowerMap : MonoBehaviour {
         }       
     }
     //Checks to see if you can build somewhere based on the current tool.
-    //TODO:Make it simple
-    private bool checkIfBuildable(int x, int y)
+    private bool checkIfBuildable(int x, int y, int height)
     {
-        if (towerMap[x, y].getFloor() > 0)
-        {
 
             for (int i = 0; i < Tools.toolWidth; i++)
             {
-
-                if (x != towerWidth &&
-               x + i <= towerWidth &&
-               !towerMap[x + i, y].getIsOccupied() &&
-               (towerMap[x + i, y - 1].getIsOccupied() || towerMap[x + i, y - 1].getDirt()))
+                for (int j = 0; j < Tools.toolHeight; j++)
                 {
+                    if (!towerMap[x + i, y + j].getIsOccupied())
+                    {
 
-                }
-                else
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                if (towerMap[x, y].getFloor() > 0)
                 {
-                    return false;
+                    if (x != towerWidth &&
+                    x + i <= towerWidth &&
+                    (towerMap[x + i, y - 1].getIsOccupied() || towerMap[x + i, y - 1].getDirt()) || towerMap[x + i, y - 1].getBuildingType() == 9)
+                    {
+
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
+                else if(towerMap[x,y].getFloor() < 0)
+                {
+                    if(x != towerWidth &&
+                        x + i <= towerWidth &&
+                        towerMap[x + i, y + Tools.toolHeight].getIsOccupied() || towerMap[x + i, y + Tools.toolHeight].getBuildingType() == 9)
+                    {
+
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
             }
         }
 
-        else if (towerMap[x, y].getFloor() < 0)
-        {
-            for (int i = 0; i < Tools.toolWidth; i++)
-            {
-                if (x + i <= towerWidth &&
-                    !towerMap[x + i, y].getIsOccupied() &&
-                    towerMap[x + i, y + 1].getIsOccupied())
-                {
-
-                }
-                else
-                {
-                    return false;
-                }
-
-            }
-        }
-   
         return true;
     }
 
@@ -260,8 +273,10 @@ public class TowerMap : MonoBehaviour {
     {
         for(int i = 0; i < Tools.toolWidth; i++)
         {
-            towerMap[x + i, y].setIsOccupied(true);
-            
+            for(int j = 0; j < Tools.toolHeight; j++)
+            {
+                towerMap[x + i, y + j].setIsOccupied(true);
+            }            
         }
 
     }
@@ -269,6 +284,7 @@ public class TowerMap : MonoBehaviour {
     {
         int chance = Random.Range(0, 50);
         int w = towerMap[x, y].getWidth();
+        int h = towerMap[x, y].getHeight();
         if(towerMap[x,y].getBuildingType() == 2)
         {
 
@@ -277,18 +293,22 @@ public class TowerMap : MonoBehaviour {
         {
             for (int i = 0; i < w; i++)
             {
-                towerMap[x + i, y].setIsOccupied(false);
-                towerMap[x + i, y].setSprite(buildingSpritesList[Tools.currentTool][Random.Range(0, buildingSpritesList[Tools.currentTool].Count)], Tools.currentTool);
-                
+                for(int j = 0; j < h; j++)
+                {
+                    towerMap[x + i, y + j].setIsOccupied(false);
+                    towerMap[x + i, y + j].setSprite(buildingSpritesList[Tools.currentTool][Random.Range(0, buildingSpritesList[Tools.currentTool].Count)], Tools.currentTool);
+                }                               
             }
         }
         else
         {
             for (int i = 0; i < w; i++)
             {
-                towerMap[x + i, y].setIsOccupied(false);
-                towerMap[x + i, y].setSprite(buildingSpritesList[Tools.currentTool][0], Tools.currentTool);
-
+                for (int j = 0; j < h; j++)
+                {
+                    towerMap[x + i, y + j].setIsOccupied(false);
+                    towerMap[x + i, y + j].setSprite(buildingSpritesList[Tools.currentTool][0], Tools.currentTool);
+                }
             }
         }
         
@@ -300,6 +320,7 @@ public class TowerMap : MonoBehaviour {
         int x;
         int y;
         b.getCoordinates(out x, out y);
+        int t = b.getBuildingType();
 
         float desire = 0;
 
@@ -308,7 +329,7 @@ public class TowerMap : MonoBehaviour {
         {
             if(building != null)
             {
-                desire += desireChart[b.getBuildingType(), building.getBuildingType()];
+                desire += desireChart[t, building.getBuildingType()];
             }
         }
         b.setDesirability(desire);
@@ -367,16 +388,38 @@ public class TowerMap : MonoBehaviour {
     }
     public Building findElevator(int y)
     {
-        Debug.Log(elevatorList.Count);
+        
         foreach(Building b in elevatorList)
         {
             if (y == b.getFloor())
             {
-                Debug.Log(y);
+                
                 return b;
             }
         }
         return null;
     }
-    
+    public void setTotalPopulation(int i)
+    {
+        totalPopulation = i;
+    }
+    public void addPopulation(int i)
+    {
+        totalPopulation += i;
+    }
+    public Sprite getRandomBuildingSprite(int i)
+    {
+        if(buildingSpritesList[i].Count > 1)
+        {
+            return buildingSpritesList[i][Random.Range(1, buildingSpritesList[i].Count)];
+        }
+        else
+        {
+            return buildingSpritesList[i][0];
+        }
+    }
+    public Sprite getEmptyBuildingSprite(int i)
+    {
+        return buildingSpritesList[i][0];
+    }
 }

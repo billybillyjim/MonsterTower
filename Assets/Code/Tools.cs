@@ -7,8 +7,11 @@ public class Tools : MonoBehaviour{
     public static int currentTool;
     public static float currentToolCost;
     public static int toolWidth;
+    public static int toolHeight;
+
     private float[] costArray = new float[20];
     private int[] widthArray = new int[20];
+    private int[] heightArray = new int[20];
 
     [SerializeField]
     private Color humanColor;
@@ -49,12 +52,13 @@ public class Tools : MonoBehaviour{
         currentTool = i;
         setToolCost(i);
         setToolWidth(i);
-        Debug.Log(i);
+        setToolHeight(i);
     }
     void Start()
     {
         setCosts();
         setWidths();
+        setHeights();
         setTool(0);
        
     }
@@ -82,6 +86,8 @@ public class Tools : MonoBehaviour{
         costArray[9] = 100f;
         //Suite
         costArray[10] = 1000f;
+        //Entertainment
+        costArray[11] = 1000f;
     }
     private void setWidths()
     {
@@ -96,6 +102,22 @@ public class Tools : MonoBehaviour{
         widthArray[8] = 1;
         widthArray[9] = 1;
         widthArray[10] = 4;
+        widthArray[11] = 3;
+    }
+    private void setHeights()
+    {
+        heightArray[0] = 1;
+        heightArray[1] = 1;
+        heightArray[2] = 1;
+        heightArray[3] = 1;
+        heightArray[4] = 1;
+        heightArray[5] = 1;
+        heightArray[6] = 1;
+        heightArray[7] = 1;
+        heightArray[8] = 1;
+        heightArray[9] = 1;
+        heightArray[10] = 1;
+        heightArray[11] = 2;
     }
     private void setToolCost(int i)
     {
@@ -104,19 +126,10 @@ public class Tools : MonoBehaviour{
     public void setToolWidth(int i)
     {
         toolWidth = widthArray[i];
-        /*
-        if(i == 0 || i == 4 || i == 6 || i == 7){
-            toolWidth = 2;
-        }
-        else if(i == 2 || i == 3 || i == 5 || i == 9)
-        {
-            toolWidth = 1;
-        }
-        else if(i == 1)
-        {
-            toolWidth = 3;
-        }
-        */
+    }
+    public void setToolHeight(int i)
+    {
+        toolHeight = heightArray[i];
     }
 
 	public int getCurrentTool()

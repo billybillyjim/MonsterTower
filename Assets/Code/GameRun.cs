@@ -6,6 +6,8 @@ public class GameRun : MonoBehaviour {
 
     [SerializeField]
     private TowerMap tower;
+    [SerializeField]
+    private MoneyManager mm;
 
     private Building[,] towerMap;
 
@@ -15,7 +17,6 @@ public class GameRun : MonoBehaviour {
     public Text cashtext;
     public Text Date;
 
-    public Text rentTotalText;
     public Text utilityTotalText;
 
     private int[] daysInMonths;
@@ -27,11 +28,11 @@ public class GameRun : MonoBehaviour {
     private float lastMonthRent;
     private float lastMonthUtilities;
 
-    private float humanOfficeRent;
-    private float zombieOfficeRent;
-    private float humanRestaurantRent;
-    private float humanHotelRent;
-    private float humanCondoRent;
+    private float[] rents;
+    private float[] expenses;
+
+    private int currentPop;
+
 
     enum Days { Sat, Sun, Mon, Tue, Wed, Thu, Fri };
 
@@ -46,6 +47,8 @@ public class GameRun : MonoBehaviour {
         hour = 12;
         year = 2017;
         daysInMonths = new int[12];
+        rents = new float[50];
+        expenses = new float[50];
         loadDaysInMonths();
 	}
 	void Update()
@@ -63,6 +66,8 @@ public class GameRun : MonoBehaviour {
                 month++;
                 earnRent();
                 payUtilities();
+                checkMoveIns();
+                checkMoveOuts();
 
                 if(year % 4 == 0 && year % 400 == 0 && year % 100 != 0)
                 {
@@ -91,8 +96,7 @@ public class GameRun : MonoBehaviour {
     {
         Date.text = "Date:" + (month + 1) + "/" + day + "/" + year + " and " + hour + " Hours";
         cashtext.text = "$" + cash;
-        rentTotalText.text = "$" + lastMonthRent;
-        utilityTotalText.text = "$" + lastMonthUtilities;
+        mm.updateRents();
 
     }
 
@@ -100,10 +104,13 @@ public class GameRun : MonoBehaviour {
     {
         towerMap = tower.getTowerMap();
         float total = 0;
+        rents = new float[50];
         foreach(Building b in towerMap)
         {
+            rents[b.getBuildingType()] += b.getRent();
             total += b.getRent();
         }
+
         cash += total;
         lastMonthRent = total;
     }
@@ -111,12 +118,47 @@ public class GameRun : MonoBehaviour {
     {
         towerMap = tower.getTowerMap();
         float total = 0;
+        expenses = new float[50];
         foreach(Building b in towerMap)
         {
+            expenses[b.getBuildingType()] += b.getUtilityPay();
             total += b.getUtilityPay();
         }
         cash -= total;
         lastMonthUtilities = total;
+    }
+    private void checkMoveIns()
+    {
+        towerMap = tower.getTowerMap();
+        
+        foreach(Building b in towerMap)
+        {   
+            if(b.getPopulation() == 0)
+            {
+                if (b.getDesirability() > 10)
+                {
+                    b.moveIn(10);
+                    b.setSprite(tower.getRandomBuildingSprite(towerMap[b.getX(), b.getY()].getBuildingType()));
+                    tower.addPopulation(10);
+                }
+            }          
+        }
+    }
+    private void checkMoveOuts()
+    {
+        towerMap = tower.getTowerMap();
+        foreach(Building b in towerMap)
+        {
+            if(b.getPopulation() != 0)
+            {
+                if(b.getDesirability() < 5)
+                {
+                    b.moveOut();
+                    b.setSprite(tower.getEmptyBuildingSprite(towerMap[b.getX(), b.getY()].getBuildingType()));
+                    tower.addPopulation(-10);
+                }
+            }
+        }
     }
 
     public static void chargeMoney(float f)
@@ -161,5 +203,14 @@ public class GameRun : MonoBehaviour {
         daysInMonths[10] = 30;
         //Dec
         daysInMonths[11] = 31;
+    }
+
+    public float[] getRents()
+    {
+        return rents;
+    }
+    public float[] getExpenses()
+    {
+        return expenses;
     }
 }

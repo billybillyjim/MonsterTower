@@ -59,6 +59,7 @@
      <Compile Include="Assets\Code\MinimizePanel.cs" />
      <Compile Include="Assets\Code\Tools.cs" />
      <Compile Include="Assets\Code\TowerMap.cs" />
+     <Compile Include="Assets\MoneyManager.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>
