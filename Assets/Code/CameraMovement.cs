@@ -5,10 +5,14 @@ public class CameraMovement : MonoBehaviour {
 
     [SerializeField]
     private float movementSpeed = .2f;
+    [SerializeField]
     private float minX = 6;
+    [SerializeField]
     private float minY = 4;
+    [SerializeField]
     private float maxX = 41;
-    private float maxY = 50;
+    [SerializeField]
+    private float maxY = 70;
 
 	// Update is called once per frame
 	void Update () {

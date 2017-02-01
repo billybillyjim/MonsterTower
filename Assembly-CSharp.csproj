@@ -52,14 +52,20 @@
      <Compile Include="Assets\Code\Character.cs" />
      <Compile Include="Assets\Code\Clock.cs" />
      <Compile Include="Assets\Code\Cloud.cs" />
+     <Compile Include="Assets\Code\Condition.cs" />
+     <Compile Include="Assets\Code\Event.cs" />
      <Compile Include="Assets\Code\EventManager.cs" />
+     <Compile Include="Assets\Code\ExtendedPanel.cs" />
      <Compile Include="Assets\Code\Faction.cs" />
      <Compile Include="Assets\Code\FactionManager.cs" />
+     <Compile Include="Assets\Code\Flag.cs" />
      <Compile Include="Assets\Code\GameRun.cs" />
      <Compile Include="Assets\Code\MinimizePanel.cs" />
+     <Compile Include="Assets\Code\Result.cs" />
      <Compile Include="Assets\Code\Tools.cs" />
      <Compile Include="Assets\Code\TowerMap.cs" />
      <Compile Include="Assets\MoneyManager.cs" />
+     <None Include="Assets\Resources\BuildingData.txt" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>

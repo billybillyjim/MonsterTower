@@ -8,10 +8,25 @@ public class Tools : MonoBehaviour{
     public static float currentToolCost;
     public static int toolWidth;
     public static int toolHeight;
+    public static int toolMinPop;
+    public static int toolMaxPop;
 
-    private float[] costArray = new float[20];
-    private int[] widthArray = new int[20];
-    private int[] heightArray = new int[20];
+    [SerializeField]
+    private Sprite selectedButtonSprite;
+    [SerializeField]
+    private Sprite buttonSprite;
+
+    private Transform currentButton;
+
+    private float[] costArray = new float[80];
+    private int[] widthArray = new int[80];
+    private int[] heightArray = new int[80];
+    private string[] nameArray = new string[80];
+    private int[] minPopArray = new int[80];
+    private int[] maxPopArray = new int[80];
+
+    [SerializeField]
+    private Transform[] buttonArray = new Transform[20];
 
     [SerializeField]
     private Color humanColor;
@@ -21,6 +36,8 @@ public class Tools : MonoBehaviour{
     private Color witchColor;
     [SerializeField]
     private Color demonColor;
+    private int currentPanel;
+    private int numOfRoomTypes;
 
     public void setPanelColor(int i)
     {
@@ -44,80 +61,75 @@ public class Tools : MonoBehaviour{
         {
             gameObject.GetComponent<Image>().color = Color.white;
         }
-        Debug.Log(i);
+        currentPanel = i;
+        
+        setTool(currentTool);
     }
 
-    public void setTool(int i)
+    public void setTool(int c)
     {
+        while(c >= numOfRoomTypes)
+        {
+            c -= numOfRoomTypes;
+        }
+        int i = c + (currentPanel * (numOfRoomTypes));
         currentTool = i;
         setToolCost(i);
         setToolWidth(i);
         setToolHeight(i);
+        
     }
     void Start()
     {
-        setCosts();
-        setWidths();
-        setHeights();
+        
+        loadData();
+        loadButtons();
         setTool(0);
+
+    }
+    private void loadData()
+    {
+        string file = System.IO.File.ReadAllText("Assets/Resources/BuildingData.txt");
+        string[] lines = file.Split("\n"[0]);
        
+        
+        for(int j = 0; j < lines.Length; j++)
+        {
+            string[] lineData = (lines[j].Trim()).Split(","[0]);        
+               
+            nameArray[j] = lineData[0];
+            costArray[j] = float.Parse(lineData[1]);
+            widthArray[j] = int.Parse(lineData[2]);            
+            heightArray[j] = int.Parse(lineData[3]);
+            minPopArray[j] = int.Parse(lineData[4]);
+            maxPopArray[j] = int.Parse(lineData[5]);
+
+                numOfRoomTypes++;
+            
+        }
+        numOfRoomTypes /= 4;
     }
-    private void setCosts()
+    private void loadButtons()
     {
-        //Office
-        costArray[0] = 100f;
-        //Restaurant
-        costArray[1] = 100f;
-        //Elevator
-        costArray[2] = 100f;
-        //Dirt
-        costArray[3] = 100f;
-        //Cafe
-        costArray[4] = 100f;
-        //Hotel
-        costArray[5] = 100f;
-        //2BedHotel
-        costArray[6] = 100f;
-        //Condo
-        costArray[7] = 100f;
-        //Stairs
-        costArray[8] = 100f;
-        //Empty
-        costArray[9] = 100f;
-        //Suite
-        costArray[10] = 1000f;
-        //Entertainment
-        costArray[11] = 1000f;
+        int i = 0;
+        foreach (Transform t in gameObject.GetComponentInChildren<Transform>())
+        {
+            if(t.parent == this.transform)
+            {
+                buttonArray[i] = t;
+                i++;
+            }
+        }
     }
-    private void setWidths()
+    public void setButtonAsSelected(int i)
     {
-        widthArray[0] = 2;
-        widthArray[1] = 3;
-        widthArray[2] = 1;
-        widthArray[3] = 1;
-        widthArray[4] = 2;
-        widthArray[5] = 1;
-        widthArray[6] = 2;
-        widthArray[7] = 2;
-        widthArray[8] = 1;
-        widthArray[9] = 1;
-        widthArray[10] = 4;
-        widthArray[11] = 3;
-    }
-    private void setHeights()
-    {
-        heightArray[0] = 1;
-        heightArray[1] = 1;
-        heightArray[2] = 1;
-        heightArray[3] = 1;
-        heightArray[4] = 1;
-        heightArray[5] = 1;
-        heightArray[6] = 1;
-        heightArray[7] = 1;
-        heightArray[8] = 1;
-        heightArray[9] = 1;
-        heightArray[10] = 1;
-        heightArray[11] = 2;
+        if(currentButton != null)
+        {
+            currentButton.GetComponent<Image>().sprite = buttonSprite;
+        }
+        currentButton = buttonArray[i];
+        currentButton.GetComponent<Image>().sprite = selectedButtonSprite;
+
     }
     private void setToolCost(int i)
     {
@@ -139,5 +151,17 @@ public class Tools : MonoBehaviour{
     public int getToolWidth()
     {
         return toolWidth;
+    }
+    public int getPopToMoveIn(int i)
+    {
+        return Random.Range(minPopArray[i], maxPopArray[i]);
+    }
+    public void setToolAsSelected(int i)
+    {
+
+    }
+    private int convertRoomToButton(int i)
+    {
+        return 0;
     }
 }

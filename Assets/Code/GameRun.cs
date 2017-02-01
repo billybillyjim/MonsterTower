@@ -8,6 +8,8 @@ public class GameRun : MonoBehaviour {
     private TowerMap tower;
     [SerializeField]
     private MoneyManager mm;
+    [SerializeField]
+    private Tools tool;
 
     private Building[,] towerMap;
 
@@ -23,7 +25,7 @@ public class GameRun : MonoBehaviour {
     public static float hour;
     private float day;
     private int month;
-    private float year;
+    private int year;
     private float daysInMonth;
     private float lastMonthRent;
     private float lastMonthUtilities;
@@ -137,9 +139,10 @@ public class GameRun : MonoBehaviour {
             {
                 if (b.getDesirability() > 10)
                 {
-                    b.moveIn(10);
+                    int i = tool.getPopToMoveIn(b.getBuildingType());
+                    b.moveIn(i);
                     b.setSprite(tower.getRandomBuildingSprite(towerMap[b.getX(), b.getY()].getBuildingType()));
-                    tower.addPopulation(10);
+                    tower.addPopulation(i);
                 }
             }          
         }
@@ -212,5 +215,13 @@ public class GameRun : MonoBehaviour {
     public float[] getExpenses()
     {
         return expenses;
+    }
+    public int getCurrentYear()
+    {
+        return year;
+    }
+    public float getMoney()
+    {
+        return cash;
     }
 }

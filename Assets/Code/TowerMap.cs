@@ -22,7 +22,14 @@ public class TowerMap : MonoBehaviour {
     public GameObject witch;
     [SerializeField]
     private int totalPopulation;
-    private enum type { Office, Restaurant, Elevator, Dirt, Cafe, Hotel, HotelTwoBed, Condo, Stairs, Empty };
+
+    public List<Sprite> testList = new List<Sprite>();
+
+    private string humanSpriteFolder = "Buildings/Humans";
+    private string zombieSpriteFoler = "Buildings/Zombies";
+    private string witchSpriteFolder = "Buildings/Witches";
+    private string demonSpriteFolder = "Buildigns/Demons";
+    private int co;
 
     // Use this for initialization
     void Start () {
@@ -31,11 +38,14 @@ public class TowerMap : MonoBehaviour {
         sizeRatio = .5f;
 	    towerMap = new Building[towerWidth,towerHeight];
         
-        loadSpriteList();
+        loadSpriteList(humanSpriteFolder);
+        loadSpriteList(zombieSpriteFoler);
+        loadSpriteList(witchSpriteFolder);
+        loadSpriteList(demonSpriteFolder);
         loadDesireChart();
         createTower();
         //InvokeRepeating("SpawnWitch", 10, 1);
-        
+       
     }
     private void SpawnWitch()
     {
@@ -92,7 +102,7 @@ public class TowerMap : MonoBehaviour {
     }
     //Loads Sprites
     //TODO: Make it not suck
-    private void loadSpriteList()
+    private void loadSpriteList(string location)
     {
 
         List<Sprite> allSprites = new List<Sprite>();
@@ -108,8 +118,9 @@ public class TowerMap : MonoBehaviour {
         List<Sprite> emptySprites = new List<Sprite>();
         List<Sprite> hotelSuiteSprites = new List<Sprite>();
         List<Sprite> entertainmentSprites = new List<Sprite>();
+        List<Sprite> utilitySprites = new List<Sprite>();
 
-        allSprites.AddRange(Resources.LoadAll<Sprite>("Buildings"));
+        allSprites.AddRange(Resources.LoadAll<Sprite>(location));
 
         foreach (Sprite s in allSprites)
         {
@@ -162,10 +173,15 @@ public class TowerMap : MonoBehaviour {
             {
                 entertainmentSprites.Add(s);
             }
-
+            else if(n == 'U')
+            {
+                utilitySprites.Add(s);
+            }
+            
         }
         //0
         buildingSpritesList.Add(officeSprites);
+        
         //1
         buildingSpritesList.Add(restaurantSprites);
         //2
@@ -188,19 +204,25 @@ public class TowerMap : MonoBehaviour {
         buildingSpritesList.Add(hotelSuiteSprites);
         //11
         buildingSpritesList.Add(entertainmentSprites);
-
+        //12
+        buildingSpritesList.Add(utilitySprites);
+        
     }
 
     //Builds at given coordinates using the current tool.
     public void build(int x, int y)
     {
-        if(checkIfBuildable(x,y, Tools.toolHeight) && GameRun.cash >= Tools.currentToolCost && Tools.currentTool != 9){
 
-            towerMap[x, y].setSprite(buildingSpritesList[Tools.currentTool][0], Tools.currentTool);
-          
+        if(checkIfBuildable(x,y, Tools.toolHeight) && GameRun.cash >= Tools.currentToolCost && Tools.currentTool != 9){
+            
+               // Debug.Log(Tools.currentTool + ", " + buildingSpritesList[Tools.currentTool]);
+                towerMap[x, y].setSprite(buildingSpritesList[Tools.currentTool][0], Tools.currentTool);
+            
+                      
                 GameRun.chargeMoney(Tools.currentToolCost);
                 occupy(x, y);
                 setDesirability(towerMap[x, y]);
+
             if(Tools.currentTool == 2)
             {
                 elevatorList.Add(towerMap[x, y]);
@@ -421,5 +443,9 @@ public class TowerMap : MonoBehaviour {
     public Sprite getEmptyBuildingSprite(int i)
     {
         return buildingSpritesList[i][0];
+    }
+    public int getPopulation()
+    {
+        return totalPopulation;
     }
 }

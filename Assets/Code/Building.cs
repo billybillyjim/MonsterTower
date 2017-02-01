@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using System.Collections;
 
 public class Building : MonoBehaviour {
@@ -26,8 +27,12 @@ public class Building : MonoBehaviour {
     private float desirability;
     [SerializeField]
     private int population;
-    
+    private UnityEngine.EventSystems.EventSystem _eventSystem;
 
+    void Start()
+    {
+        _eventSystem = GameObject.Find("EventSystem").GetComponent<EventSystem>();
+    }
 
     public void setSprite(Sprite s)
     {
@@ -61,10 +66,20 @@ public class Building : MonoBehaviour {
     }
     void OnMouseUp()
     {
+        if (_eventSystem.IsPointerOverGameObject())
+        {
+            // we're over a UI element... peace out
+            return;
+        }
         GameObject.Find("Tower").GetComponent<TowerMap>().build(wVal, hVal);
     }
     void OnMouseOver()
     {
+        if (_eventSystem.IsPointerOverGameObject())
+        {
+            // we're over a UI element... peace out
+            return;
+        }
         if (Input.GetMouseButton(0))
         {
             GameObject.Find("Tower").GetComponent<TowerMap>().build(wVal, hVal);
