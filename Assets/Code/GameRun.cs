@@ -29,6 +29,7 @@ public class GameRun : MonoBehaviour {
     private float daysInMonth;
     private float lastMonthRent;
     private float lastMonthUtilities;
+    private int[] buildingNumbers;
 
     private float[] rents;
     private float[] expenses;
@@ -223,5 +224,17 @@ public class GameRun : MonoBehaviour {
     public float getMoney()
     {
         return cash;
+    }
+    public void setMoney(float f)
+    {
+        cash = f;
+    }
+    public void setCurrentYear(int i)
+    {
+        year = i;
+    }
+    public int getBuildingValue(int i)
+    {
+        return buildingNumbers[i];
     }
 }

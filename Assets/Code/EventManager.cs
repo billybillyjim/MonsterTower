@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using System.Collections.Generic;
 
 public class EventManager : MonoBehaviour {
@@ -8,6 +10,14 @@ public class EventManager : MonoBehaviour {
     private List<Event> eventList = new List<Event>();
     private List<Result> resultList = new List<Result>();
     private int currentConditionCheck = 0;
+    [SerializeField]
+    private GameObject eventPanel;
+    [SerializeField]
+    private GameObject eventChoice;
+    [SerializeField]
+    private Transform canvas;
+    [SerializeField]
+    private Vector3 eventPopUpPos;
 
     public GameRun game;
     public TowerMap tower;
@@ -18,12 +28,41 @@ public class EventManager : MonoBehaviour {
         loadFlags();
         loadResults();
         loadEvents();
-        //updateConditions();
+        updateConditions();
+        runEvent(eventList[0]);
+
     }
     void Update()
     {
         updateConditions();
         
+    }
+    private void runEvent(Event e)
+    {
+        GameObject t = (GameObject)Instantiate(eventPanel, eventPanel.transform.position, Quaternion.identity);
+        GameObject o = t.gameObject;
+        o.transform.SetParent(canvas);
+        o.GetComponent<RectTransform>().localScale = new Vector3(1,1,1);
+        o.GetComponent<RectTransform>().position = eventPopUpPos;
+
+        string title = e.getTitle();
+        string text = e.getText();
+        Text[] eventTexts = o.GetComponentsInChildren<Text>();
+        eventTexts[0].text = title;
+        eventTexts[1].text = text;
+        Transform[] optionsList = o.GetComponentsInChildren<Transform>();
+       
+        foreach(Result r in e.getResults())
+        {
+            GameObject re = (GameObject)Instantiate(eventChoice, eventChoice.transform.position, Quaternion.identity);
+            GameObject res = re.gameObject;
+            res.transform.SetParent(optionsList[5]);
+            res.GetComponent<RectTransform>().localScale = new Vector3(1, 1, 1);
+            Button button = res.GetComponent<Button>();
+            button.onClick.AddListener( () => { doResult(r.getVal(), r.getFloat()); });
+            button.onClick.AddListener( () => { o.SetActive(false); });
+            res.GetComponentInChildren<Text>().text = r.getText();
+        }
     }
 
     private void updateConditions()
@@ -102,6 +141,31 @@ public class EventManager : MonoBehaviour {
         
     }
 
+    public void doResult(int val, int amount)
+    {
+        switch (val)
+        {
+            case 0:
+                game.setCurrentYear(game.getCurrentYear() + amount);
+                break;
+            case 1:
+                tower.setTotalPopulation(tower.getPopulation() + amount);
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+        }
+    }
+    public void doResult(int val, float amount)
+    {
+        switch (val)
+        {
+            case 6:
+                game.setMoney(game.getMoney() + amount);
+                break;
+        }
+    }
 
     private void loadConditions()
     {
@@ -283,12 +347,14 @@ public class EventManager : MonoBehaviour {
         {
             foreach(Result result in resultList)
             {
-                if(result.getID() == r[i])
+                if(result.getID() == r[i] && result.getID() != 0)
                 {
                     returnList.Add(result);
+                    
                 }
             }
         }
+        //Debug.Log(returnList.Count);
         return returnList;
     }
 }

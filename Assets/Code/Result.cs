@@ -51,4 +51,12 @@ public class Result {
     {
         return id;
     }
+    public int getVal()
+    {
+        return val; 
+    }
+    public float getFloat()
+    {
+        return resultFloat;
+    }
 }

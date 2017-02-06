@@ -18,9 +18,9 @@ public class Background : MonoBehaviour {
     {
         towerSprites = Resources.LoadAll<Sprite>("board/skyline");
         bgUnits = new Transform[backgroundWidth, backgroundHeight];
-        makeBackground();
+       // makeBackground();
         //makeBackgroundCity();
-        InvokeRepeating("spawnCloud", 5, 1);
+       // InvokeRepeating("spawnCloud", 5, 1);
     }
     private void makeBackground()
     {

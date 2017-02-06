@@ -43,7 +43,7 @@ public class TowerMap : MonoBehaviour {
         loadSpriteList(witchSpriteFolder);
         loadSpriteList(demonSpriteFolder);
         loadDesireChart();
-        createTower();
+       // createTower();
         //InvokeRepeating("SpawnWitch", 10, 1);
        
     }
@@ -209,6 +209,7 @@ public class TowerMap : MonoBehaviour {
         
     }
 
+    //FIX FOR BULLDOZE
     //Builds at given coordinates using the current tool.
     public void build(int x, int y)
     {

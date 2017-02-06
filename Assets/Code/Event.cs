@@ -37,4 +37,8 @@ public class Event{
     {
         return weight;
     }
+    public List<Result> getResults()
+    {
+        return resultList;
+    }
 }
