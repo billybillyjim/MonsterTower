@@ -9,7 +9,11 @@ public class GameRun : MonoBehaviour {
     [SerializeField]
     private MoneyManager mm;
     [SerializeField]
+    private FactionManager fm;
+    [SerializeField]
     private Tools tool;
+    [SerializeField]
+    private EventManager em;
 
     private Building[,] towerMap;
 
@@ -36,15 +40,22 @@ public class GameRun : MonoBehaviour {
 
     private int currentPop;
 
+    public bool testing = true;
 
+    //Not currently using this
     enum Days { Sat, Sun, Mon, Tue, Wed, Thu, Fri };
 
 
     // Use this for initialization
     void Start () {
+        //Normal Play Speed
         gameSpeed = .3f;
+        //Starting Cash
+        //TODO: Make this load on game load.
         cash = 100000;
+        //Starting Month
         month = 0;
+        //Starting days in January
         daysInMonth = 31;
         day = 1;
         hour = 12;
@@ -56,8 +67,7 @@ public class GameRun : MonoBehaviour {
 	}
 	void Update()
     {
-        
-        
+        //Time step
         hour += gameSpeed;
         if(hour >= 24)
         {
@@ -66,12 +76,9 @@ public class GameRun : MonoBehaviour {
 
             if(day > daysInMonth)
             {
-                month++;
-                earnRent();
-                payUtilities();
-                checkMoveIns();
-                checkMoveOuts();
+                tickMonth();
 
+                //Accounts for leap years.
                 if(year % 4 == 0 && year % 400 == 0 && year % 100 != 0)
                 {
                     if(month == 1)
@@ -86,6 +93,7 @@ public class GameRun : MonoBehaviour {
                 
                 day = 1;
                 
+                //Months go from 0-11
                 if(month >= 11)
                 {
                     year++;
@@ -95,12 +103,28 @@ public class GameRun : MonoBehaviour {
         }
          setTexts();
     }
+
+    private void tickMonth()
+    {
+        month++;
+
+        earnRent();
+        payUtilities();
+
+        checkMoveIns();
+        checkMoveOuts();
+
+        fm.trendFactionsTowardNeutral();
+    }
+
     private void setTexts()
     {
-        Date.text = "Date:" + (month + 1) + "/" + day + "/" + year + " and " + hour + " Hours";
-        cashtext.text = "$" + cash;
-        mm.updateRents();
-
+        if (!testing)
+        {
+            Date.text = "Date:" + (month + 1) + "/" + day + "/" + year + " and " + hour + " Hours";
+            cashtext.text = "$" + cash;
+            mm.updateRents();
+        }      
     }
 
     private void earnRent()
@@ -110,8 +134,11 @@ public class GameRun : MonoBehaviour {
         rents = new float[50];
         foreach(Building b in towerMap)
         {
-            rents[b.getBuildingType()] += b.getRent();
-            total += b.getRent();
+            if(b.getBuildingType() >= 0)
+            {
+                rents[b.getBuildingType()] += b.getRent();
+                total += b.getRent();
+            }          
         }
 
         cash += total;
@@ -124,11 +151,31 @@ public class GameRun : MonoBehaviour {
         expenses = new float[50];
         foreach(Building b in towerMap)
         {
-            expenses[b.getBuildingType()] += b.getUtilityPay();
-            total += b.getUtilityPay();
+            if(b.getBuildingType() >= 0)
+            {
+                expenses[b.getBuildingType()] += b.getUtilityPay();
+                total += b.getUtilityPay();
+            }          
         }
         cash -= total;
         lastMonthUtilities = total;
+    }
+    public void testEvents()
+    {
+        int i = em.getEventList().Count;
+        foreach(Event e in em.getEventList())
+        {
+            setConditionsForEventTest(e);
+            test();
+        }
+    }
+    private void setConditionsForEventTest(Event e)
+    {
+
+    }
+    private void test()
+    {
+        
     }
     private void checkMoveIns()
     {
@@ -148,6 +195,8 @@ public class GameRun : MonoBehaviour {
             }          
         }
     }
+
+    //TODO: Make it not only lower population by 10.
     private void checkMoveOuts()
     {
         towerMap = tower.getTowerMap();

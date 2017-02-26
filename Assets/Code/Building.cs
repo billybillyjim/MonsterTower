@@ -7,8 +7,10 @@ public class Building : MonoBehaviour {
 
     [SerializeField]
     private Sprite buildingSprite;
+
     [SerializeField]
     private int buildingType;
+    private int buildingVariation;
     [SerializeField]
     private int width;
     [SerializeField]
@@ -29,9 +31,11 @@ public class Building : MonoBehaviour {
     private int population;
     private UnityEngine.EventSystems.EventSystem _eventSystem;
 
-    void Start()
+    void Awake()
     {
         _eventSystem = GameObject.Find("EventSystem").GetComponent<EventSystem>();
+        buildingType = -1;
+        
     }
 
     public void setSprite(Sprite s)
@@ -47,7 +51,12 @@ public class Building : MonoBehaviour {
         width = Tools.toolWidth;
         height = Tools.toolHeight;
         rentPay = 100;
-        utilityPay = i * 5;        
+        utilityPay = i * 5;
+        
+    }
+    public void setColor(Color c)
+    {
+        GetComponent<SpriteRenderer>().color = c;
     }
     public void setType(int i)
     {
@@ -71,19 +80,55 @@ public class Building : MonoBehaviour {
             // we're over a UI element... peace out
             return;
         }
-        GameObject.Find("Tower").GetComponent<TowerMap>().build(wVal, hVal);
+        if(Tools.currentTool != -1)
+        {
+            GameObject.Find("Tower").GetComponent<TowerMap>().build(wVal, hVal);
+        }
+        else
+        {
+            Debug.Log(population);
+        }
+        
     }
     void OnMouseOver()
     {
+       
         if (_eventSystem.IsPointerOverGameObject())
         {
             // we're over a UI element... peace out
             return;
         }
-        if (Input.GetMouseButton(0))
+        if(Tools.currentTool != -1)
         {
-            GameObject.Find("Tower").GetComponent<TowerMap>().build(wVal, hVal);
-        }       
+            if (Input.GetMouseButton(0))
+            {
+                GameObject.Find("Tower").GetComponent<TowerMap>().build(wVal, hVal);
+            }
+            if ((buildingType == -1 || buildingType == 3) && !isOccupied)
+            {
+                GetComponent<SpriteRenderer>().sprite = GameObject.Find("Tower").GetComponent<TowerMap>().getBuildingSpritesList()[Tools.currentTool][0];
+                GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, .5f);
+                GetComponent<SpriteRenderer>().sortingOrder = 10;
+            }
+        }
+             
+    }
+    void OnMouseExit()
+    {
+        GetComponent<SpriteRenderer>().sprite = buildingSprite;
+        if (buildingType != -1)
+        {
+            
+            GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 1);
+            GetComponent<SpriteRenderer>().sortingOrder = 0;
+        }
+        else
+        {
+            GetComponent<SpriteRenderer>().sprite = null;
+
+        }
+       
+
     }
 
     public void moveIn(int i)

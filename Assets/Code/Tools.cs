@@ -68,16 +68,22 @@ public class Tools : MonoBehaviour{
 
     public void setTool(int c)
     {
-        while(c >= numOfRoomTypes)
+        if(c == -1)
         {
-            c -= numOfRoomTypes;
+            currentTool = -1;            
         }
-        int i = c + (currentPanel * (numOfRoomTypes));
-        currentTool = i;
-        setToolCost(i);
-        setToolWidth(i);
-        setToolHeight(i);
-        
+        else
+        {
+            while (c >= numOfRoomTypes)
+            {
+                c -= numOfRoomTypes;
+            }
+            int i = c + (currentPanel * (numOfRoomTypes));
+            currentTool = i;
+            setToolCost(i);
+            setToolWidth(i);
+            setToolHeight(i);
+        }           
     }
     void Start()
     {

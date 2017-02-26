@@ -59,12 +59,17 @@
      <Compile Include="Assets\Code\Faction.cs" />
      <Compile Include="Assets\Code\FactionManager.cs" />
      <Compile Include="Assets\Code\Flag.cs" />
+     <Compile Include="Assets\Code\FollowCamera.cs" />
      <Compile Include="Assets\Code\GameRun.cs" />
      <Compile Include="Assets\Code\MinimizePanel.cs" />
      <Compile Include="Assets\Code\Result.cs" />
+     <Compile Include="Assets\Code\SaveGame.cs" />
      <Compile Include="Assets\Code\Tools.cs" />
      <Compile Include="Assets\Code\TowerMap.cs" />
+     <Compile Include="Assets\LoadGame.cs" />
+     <Compile Include="Assets\MainMenu.cs" />
      <Compile Include="Assets\MoneyManager.cs" />
+     <Compile Include="Assets\TestGame.cs" />
      <None Include="Assets\Resources\BuildingData.txt" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>

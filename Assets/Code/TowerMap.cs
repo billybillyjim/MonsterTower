@@ -13,16 +13,19 @@ public class TowerMap : MonoBehaviour {
     public GameObject building;
     [SerializeField]
     private Building[,] towerMap;
-    //[SerializeField]
-    //private List<Sprite> buildingSpriteList = new List<Sprite>();
+    [SerializeField]
+    private List<Sprite> buildingSpriteList = new List<Sprite>();
     [SerializeField]
     private List<List<Sprite>> buildingSpritesList = new List<List<Sprite>>();
     [SerializeField]
     private List<Building> elevatorList = new List<Building>();
-    public GameObject witch;
     [SerializeField]
     private int totalPopulation;
-
+    private int humanPopulation;
+    private int zombiePopulation;
+    private int witchPopulation;
+    private int demonPopulation;
+    public bool testing = true;
     public List<Sprite> testList = new List<Sprite>();
 
     private string humanSpriteFolder = "Buildings/Humans";
@@ -33,8 +36,12 @@ public class TowerMap : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        towerHeight = 140;
-        towerWidth = 100;
+        if (!testing)
+        {
+            towerHeight = 140;
+            towerWidth = 100;
+
+        }
         sizeRatio = .5f;
 	    towerMap = new Building[towerWidth,towerHeight];
         
@@ -43,17 +50,11 @@ public class TowerMap : MonoBehaviour {
         loadSpriteList(witchSpriteFolder);
         loadSpriteList(demonSpriteFolder);
         loadDesireChart();
-       // createTower();
+        createTower();
         //InvokeRepeating("SpawnWitch", 10, 1);
        
     }
-    private void SpawnWitch()
-    {
-        GameObject w = (GameObject)Instantiate(witch, new Vector3(2, 20, -2), Quaternion.identity);
-        GameObject g = w.gameObject;
-        
-        g.GetComponent<Character>().Init(towerMap[6, 41]);
-    }
+
 
 	//Makes the whole tower
     private void createTower()
@@ -62,42 +63,48 @@ public class TowerMap : MonoBehaviour {
         {
             for(int j = 0; j < towerHeight; j++)
             {
-                          
+                //Unity is garbage and for some reason gets mad unless you do this.          
                 GameObject t = (GameObject)Instantiate(building, new Vector3(i * sizeRatio, j * sizeRatio), Quaternion.identity);
                 GameObject b = t.gameObject;
                 towerMap[i, j] = b.GetComponent<Building>();
-                if (j == 40)
-                {
-                    b.GetComponent<Building>().setSprite(buildingSpritesList[3][0]);
-                    
-
-                }
-                if (j > 15 && j < 40)
-                {
-                    b.GetComponent<Building>().setSprite(buildingSpritesList[3][1]);
-                    
-                }
-                if (j == 15)
-                {
-                    b.GetComponent<Building>().setSprite(buildingSpritesList[3][2]);
-                    
-                }
-                if (j < 15)
-                {
-                    b.GetComponent<Building>().setSprite(buildingSpritesList[3][3]);
-                    
-                }
+                createDirt(j, b);
                 b.GetComponent<Building>().Init(i, j);
-                if(j > 40)
-                {
-                    b.GetComponent<Building>().setFloor(j - 40);
-                }
-                else
-                {
-                    b.GetComponent<Building>().setFloor(j - 41);
-                    b.GetComponent<Building>().setDirt(true);
-                }
             }
+        }
+    }
+
+    //This makes the dirt ground.
+    private void createDirt(int j, GameObject b)
+    {
+        if (j == 40)
+        {
+            b.GetComponent<Building>().setSprite(buildingSpritesList[3][0], 3);
+
+        }
+        if (j > 15 && j < 40)
+        {
+            b.GetComponent<Building>().setSprite(buildingSpritesList[3][1], 3);
+
+        }
+        if (j == 15)
+        {
+            b.GetComponent<Building>().setSprite(buildingSpritesList[3][2], 3);
+
+        }
+        if (j < 15)
+        {
+            b.GetComponent<Building>().setSprite(buildingSpritesList[3][3], 3);
+
+        }
+        
+        if (j > 40)
+        {
+            b.GetComponent<Building>().setFloor(j - 40);
+        }
+        else
+        {
+            b.GetComponent<Building>().setFloor(j - 41);
+            b.GetComponent<Building>().setDirt(true);
         }
     }
     //Loads Sprites
@@ -179,9 +186,9 @@ public class TowerMap : MonoBehaviour {
             }
             
         }
+        //This currently loads in a specific order that the Tools class uses in order to differentiate factional buildings.
         //0
-        buildingSpritesList.Add(officeSprites);
-        
+        buildingSpritesList.Add(officeSprites);      
         //1
         buildingSpritesList.Add(restaurantSprites);
         //2
@@ -209,17 +216,13 @@ public class TowerMap : MonoBehaviour {
         
     }
 
-    //FIX FOR BULLDOZE
     //Builds at given coordinates using the current tool.
     public void build(int x, int y)
     {
-
+        //Checks if the spaces are available to build and if the player has enough money to play. Tool 9 is the bulldozer and has different rules.
         if(checkIfBuildable(x,y, Tools.toolHeight) && GameRun.cash >= Tools.currentToolCost && Tools.currentTool != 9){
             
-               // Debug.Log(Tools.currentTool + ", " + buildingSpritesList[Tools.currentTool]);
-                towerMap[x, y].setSprite(buildingSpritesList[Tools.currentTool][0], Tools.currentTool);
-            
-                      
+                towerMap[x, y].setSprite(buildingSpritesList[Tools.currentTool][0], Tools.currentTool);      
                 GameRun.chargeMoney(Tools.currentToolCost);
                 occupy(x, y);
                 setDesirability(towerMap[x, y]);
@@ -230,26 +233,27 @@ public class TowerMap : MonoBehaviour {
             }
        
         }
+        //Bulldoze
         if(Tools.currentTool == 9)
         {
+            //Only bulldozes non-empty buildings.
             if(towerMap[x,y].getBuildingType() != 9)
             {
                 bulldoze(x, y);
-               
                 GameRun.chargeMoney(Tools.currentToolCost);
-                
                 setDesirability(towerMap[x, y]);
             }            
         }       
     }
-    //Checks to see if you can build somewhere based on the current tool.
+
+    //Checks to see if you can build somewhere based on the current tool. Returns true if all spaces are unoccupied.
     private bool checkIfBuildable(int x, int y, int height)
     {
-
             for (int i = 0; i < Tools.toolWidth; i++)
             {
                 for (int j = 0; j < Tools.toolHeight; j++)
                 {
+                    //If the location isn't occupied, do nothing.
                     if (!towerMap[x + i, y + j].getIsOccupied())
                     {
 
@@ -258,11 +262,14 @@ public class TowerMap : MonoBehaviour {
                     {
                         return false;
                     }
+                //Checks for above ground.
                 if (towerMap[x, y].getFloor() > 0)
                 {
                     if (x != towerWidth &&
-                    x + i <= towerWidth &&
-                    (towerMap[x + i, y - 1].getIsOccupied() || towerMap[x + i, y - 1].getDirt()) || towerMap[x + i, y - 1].getBuildingType() == 9)
+                        x + i <= towerWidth &&
+                        (towerMap[x + i, y - 1].getIsOccupied() || 
+                        towerMap[x + i, y - 1].getDirt()) || 
+                        towerMap[x + i, y - 1].getBuildingType() == 9)
                     {
 
                     }
@@ -271,11 +278,13 @@ public class TowerMap : MonoBehaviour {
                         return false;
                     }
                 }
+                //Checks for below ground.
                 else if(towerMap[x,y].getFloor() < 0)
                 {
                     if(x != towerWidth &&
                         x + i <= towerWidth &&
-                        towerMap[x + i, y + Tools.toolHeight].getIsOccupied() || towerMap[x + i, y + Tools.toolHeight].getBuildingType() == 9)
+                        towerMap[x + i, y + Tools.toolHeight].getIsOccupied() ||
+                        towerMap[x + i, y + Tools.toolHeight].getBuildingType() == 9)
                     {
 
                     }
@@ -287,7 +296,6 @@ public class TowerMap : MonoBehaviour {
 
             }
         }
-
         return true;
     }
 
@@ -303,15 +311,20 @@ public class TowerMap : MonoBehaviour {
         }
 
     }
+    //TODO: Make it suck less. Currently it changes all empties to a different sprite if the random chance hits.
     private void bulldoze(int x, int y)
     {
+        //Random chance of a different empty sprite.
         int chance = Random.Range(0, 50);
         int w = towerMap[x, y].getWidth();
         int h = towerMap[x, y].getHeight();
+
+        //If the deleted building is an elevator
         if(towerMap[x,y].getBuildingType() == 2)
         {
 
         }
+
         if (chance > 45)
         {
             for (int i = 0; i < w; i++)
@@ -338,6 +351,7 @@ public class TowerMap : MonoBehaviour {
        
         
     }
+    //TODO: Make it faster. Maybe use a preset array?
     private void setDesirability(Building b)
     {
         int x;
@@ -350,7 +364,7 @@ public class TowerMap : MonoBehaviour {
         Building[,] neighbors = getNeighbors(x, y);
         foreach(Building building in neighbors)
         {
-            if(building != null)
+            if(building != null && building.getBuildingType() != -1)
             {
                 desire += desireChart[t, building.getBuildingType()];
             }
@@ -392,6 +406,7 @@ public class TowerMap : MonoBehaviour {
 
         return neighbors;
     }
+
     private void loadDesireChart()
     {
         string file = System.IO.File.ReadAllText("Assets/Resources/BuildingDesireChart.csv");
@@ -448,5 +463,45 @@ public class TowerMap : MonoBehaviour {
     public int getPopulation()
     {
         return totalPopulation;
+    }
+    public List<List<Sprite>> getBuildingSpritesList()
+    {
+        return buildingSpritesList;
+    }
+    public int getHumanPop()
+    {
+        return humanPopulation;
+    }
+    public int getZombiePop()
+    {
+        return zombiePopulation;
+    }
+    public int getWitchPop()
+    {
+        return witchPopulation;
+    }
+    public int getDemonPop()
+    {
+        return demonPopulation;
+    }
+    public void addHumanPop(int i)
+    {
+        humanPopulation += i;
+        totalPopulation += i;
+    }
+    public void addZombiePop(int i)
+    {
+        zombiePopulation += i;
+        totalPopulation += i;
+    }
+    public void addWitchPop(int i)
+    {
+        witchPopulation += i;
+        totalPopulation += i;
+    }
+    public void addDemonPop(int i)
+    {
+        demonPopulation += i;
+        totalPopulation += i;
     }
 }

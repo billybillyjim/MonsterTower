@@ -30,4 +30,8 @@ public class Flag {
     {
         return value;
     }
+    public void setValue(bool b)
+    {
+        value = b;
+    }
 }

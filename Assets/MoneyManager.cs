@@ -14,6 +14,7 @@ public class MoneyManager : MonoBehaviour {
     public Text totalRestaurantRentText;
     public Text totalCondoRentText;
     public Text totalHotelRentText;
+    public bool testing = true;
 
     private float totalRent;
     private float totalOfficeRent;
@@ -31,12 +32,14 @@ public class MoneyManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-
-        totalRentText.text = "Total Rent: $" + totalRent;
-        totalOfficeRentText.text = "Office Rent: $" + totalOfficeRent;
-        totalRestaurantRentText.text = "Restaurant Rent: $" + totalRestaurantRent;
-        totalHotelRentText.text = "Hotel Rent: $" + totalHotelRent;
-        totalCondoRentText.text = "Condo Rent: $" + totalCondoRent;
+        if (!testing)
+        {
+            totalRentText.text = "Total Rent: $" + totalRent;
+            totalOfficeRentText.text = "Office Rent: $" + totalOfficeRent;
+            totalRestaurantRentText.text = "Restaurant Rent: $" + totalRestaurantRent;
+            totalHotelRentText.text = "Hotel Rent: $" + totalHotelRent;
+            totalCondoRentText.text = "Condo Rent: $" + totalCondoRent;
+        }        
 	}
 
     public void updateRents()

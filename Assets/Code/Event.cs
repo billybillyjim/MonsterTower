@@ -8,9 +8,10 @@ public class Event{
     private int ID;
     private string title;
     private string text;
-    private float weight;
+    private int weight;
+    private bool fired;
 
-    public void Init(List<Flag> fList, List<Result> rList, int i, string t, string txt, float w)
+    public void Init(List<Flag> fList, List<Result> rList, int i, string t, string txt, int w)
     {
         flagList = fList;
         resultList = rList;
@@ -33,12 +34,24 @@ public class Event{
         return ID;
 
     }
-    public float getweight()
+    public int getWeight()
     {
         return weight;
     }
     public List<Result> getResults()
     {
         return resultList;
+    }
+    public List<Flag> getFlags()
+    {
+        return flagList;
+    }
+    public void setFired(bool b)
+    {
+        fired = b;
+    }
+    public bool getFired()
+    {
+        return fired;
     }
 }
