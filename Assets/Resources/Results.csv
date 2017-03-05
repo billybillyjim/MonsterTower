@@ -1,23 +1,12 @@
-0001,50 Population,Yay money!,1,6,,1000,
-0002,200 Population,Yay money!,1,6,,5000,
-0003,1000 Population,Yay money!,1,6,,10000,
-0004,Let Zombies In,Let them in...,2,7,true,,
-0005,Keep Zombies Out,Keep those dirty creatures away from my tower!,2,7,false,,
-0006,Test,Test,0,1,,,10
-0007,,,,,,,
-0008,,,,,,,
-0009,,,,,,,
-0010,,,,,,,
-0011,,,,,,,
-0012,,,,,,,
-0013,,,,,,,
-0014,,,,,,,
-0015,,,,,,,
-0016,,,,,,,
-0017,,,,,,,
-0018,,,,,,,
-0019,,,,,,,
-0020,,,,,,,
-0021,,,,,,,
-0022,,,,,,,
-0023,,,,,,,
+0001,Yay money!,Money:1000
+0002,Yay money!,Money:5000
+0003,Yay money!,Money:10000
+0004,Let them in...,Let Zombies In:true
+0005,Keep those dirty creatures away from my tower!,Let Zombies In:false
+0006,Oh dear.,Money:5
+0007,Excellent.,Money:1
+0008,Easy Money!!!,Let Witches In:true
+0009,Burn the Witches!,Let Witches In:false
+0010,No problem!,Let Demons In:true
+0011,All in a day's work.,Money:100000
+0012,Gosh darn.,Money:-10000

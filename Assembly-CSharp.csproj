@@ -64,6 +64,7 @@
      <Compile Include="Assets\Code\MinimizePanel.cs" />
      <Compile Include="Assets\Code\Result.cs" />
      <Compile Include="Assets\Code\SaveGame.cs" />
+     <Compile Include="Assets\Code\ToolTip.cs" />
      <Compile Include="Assets\Code\Tools.cs" />
      <Compile Include="Assets\Code\TowerMap.cs" />
      <Compile Include="Assets\LoadGame.cs" />

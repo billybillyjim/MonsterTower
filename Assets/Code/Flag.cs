@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class Flag {
 
-    private bool value;
+    private bool truthValue;
     private int ID;
     private string flagName;
     private List<Condition> conditions;
@@ -13,8 +13,9 @@ public class Flag {
         ID = i;
         flagName = s;
         conditions = c;
+        truthValue = false;
     }
-    public List<Condition> getCondition()
+    public List<Condition> getConditions()
     {
         return conditions;
     }
@@ -26,12 +27,12 @@ public class Flag {
     {
         return ID;
     }
-    public bool getValue()
+    public bool getTruthValue()
     {
-        return value;
+        return truthValue;
     }
-    public void setValue(bool b)
+    public void setTruthValue(bool b)
     {
-        value = b;
+        truthValue = b;
     }
 }

@@ -40,6 +40,7 @@ public class Event{
     }
     public List<Result> getResults()
     {
+        Debug.Log(resultList.Count);
         return resultList;
     }
     public List<Flag> getFlags()

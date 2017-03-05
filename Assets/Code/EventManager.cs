@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
+using System.Linq;
 
 public class EventManager : MonoBehaviour {
 
@@ -15,6 +16,8 @@ public class EventManager : MonoBehaviour {
     private GameObject eventPanel;
     [SerializeField]
     private GameObject eventChoice;
+    [SerializeField]
+    private GameObject eventToolTip;
     [SerializeField]
     private Transform canvas;
     [SerializeField]
@@ -34,15 +37,20 @@ public class EventManager : MonoBehaviour {
         loadFlags();
         loadResults();
         loadEvents();
-        updateConditions();      
+        updateFlags();
         addPotentialEvents();
         InvokeRepeating("addPotentialEvents", 5, addPotentialEventInterval);
         InvokeRepeating("updateFlags", 4, updateFlagInterval);
         InvokeRepeating("checkPotentialEvents", 6, checkPotentialEventInterval);
+        foreach(Result r in resultList)
+        {
+            Debug.Log(r.getName());
+        }
     }
     void Update()
     {
-        updateConditions();
+        updateFlags();
+
         
     }
     private void setRepeatings() {
@@ -51,32 +59,14 @@ public class EventManager : MonoBehaviour {
         InvokeRepeating("updateFlags", 0, updateFlagInterval);
         InvokeRepeating("checkPotentialEvents", 0, checkPotentialEventInterval);
     }
-    public void setNormalIntervals()
+
+    public void updateEvents()
     {
-        addPotentialEventInterval = 5;
-        updateFlagInterval = 5;
-        checkPotentialEventInterval = 5;
-        CancelInvoke();
-        setRepeatings();
+        addPotentialEvents();
+        updateFlags();
+        checkPotentialEvents();
     }
-    public void setIntervals(int i)
-    {
-        addPotentialEventInterval = i;
-        updateFlagInterval = i;
-        checkPotentialEventInterval = i;
-        CancelInvoke();
-        setRepeatings();
-    }
-    public void setIntervalString(Text t)
-    {
-        string s = t.text;
-        int i;
-        int.TryParse(s, out i);
-        if(i > 0)
-        {
-            setIntervals(i);
-        }
-    }
+
     private void runEvent(Event e)
     {
         if(e.getTitle() == "")
@@ -103,142 +93,78 @@ public class EventManager : MonoBehaviour {
             GameObject res = re.gameObject;
             res.transform.SetParent(optionsList[5]);
             res.GetComponent<RectTransform>().localScale = new Vector3(1, 1, 1);
+
             Button button = res.GetComponent<Button>();
-            button.onClick.AddListener( () => { doResult(r.getVal(), r.getFloat()); });
+
+            Text toolText = res.GetComponentsInChildren<Text>()[1];
+            toolText.text = r.getValue();                     
+            button.onClick.AddListener(() => { doResult(r.getValue()); });           
             button.onClick.AddListener( () => { o.SetActive(false); });
-            res.GetComponentInChildren<Text>().text = r.getText();
+            button.onClick.AddListener(() => { Destroy(o); });
+            
+            Debug.Log(r.getID() + ", " + r.getValue() + ", " + r.getName()); 
+            res.GetComponentInChildren<Text>().text = r.getName();
         }
         e.setFired(true);
         potentialEventList.Remove(e);
-    }
-
-    private void updateConditions()
-    {
-        updateCondition(conditionList[currentConditionCheck]);       
-        if(currentConditionCheck + 1 >= conditionList.Count)
-        {
-            currentConditionCheck = 0;
-        }
-        else
-        {
-            currentConditionCheck++;
-        }
-        
-    }
-    private void updateCondition(Condition c)
-    {
-        if(c.getID() == 0)
-        {
-            return;
-        }
-        int v = c.getType();
-        if(v == 0)
-        {
-            updateConditionValue(c, c.getInt());
-        }
-        else if(v == 1)
-        {
-            updateConditionValue(c, c.getFloat());
-        }
-    }
-    //Pay close attention to comparators. It's backwards from what you might think.
-    //TO DO: Make not wasteful
-
-    private void updateConditionValue(Condition c, int t)
-    {
-        int i = c.getVal();
-        Debug.Log(c.getName() + c.getInt() + ", Value to Check:" + i + ", Value of Stat:" + t);
-        switch (i)
-        {
-            case -1:
-                if(t > tower.getPopulation())
-                {
-                    c.setValidity(true);
-                }
-                else
-                {
-                    c.setValidity(false);
-                }
-                break;
-            case 0:
-                if (t < game.getCurrentYear())
-                {
-                    c.setValidity(true);
-                }
-                else
-                {
-                    c.setValidity(false);
-                }
-                break;
-            case 1:
-                Debug.Log("T is " + t + ", and the tower population is " + tower.getPopulation());
-                if(t < tower.getPopulation())
-                {
-                    
-                    c.setValidity(true);
-                }
-                else
-                {
-                    c.setValidity(false);
-                }
-                break;
-            case 2:
-                break;
-            case 3:
-                if(t < tower.getHumanPop())
-                {
-                    c.setValidity(true);
-                }
-                else
-                {
-                    c.setValidity(false);
-                }
-                break;
-        }
-        
-    }
-    private void updateConditionValue(Condition c, float f)
-    {
-        int i = c.getType();
-        switch (i)
-        {
-            case -6:
-                if(f > game.getMoney())
-                {
-                    c.setValidity(true);
-                }
-                break;
-            case 6:
-                if(f < game.getMoney())
-                {
-                    c.setValidity(true);
-                }
-                break;
-        }
-        
     }
 
     private void updateFlags()
     {
         foreach(Flag f in flagList)
         {
-            foreach(Condition c in f.getCondition())
+            foreach(Condition c in f.getConditions())
             {
-                if(c.getValidity() == false)
+                if(checkConditionValue(c) == false)
                 {
-                    f.setValue(false);
+                    f.setTruthValue(false);
                     break;
                 }
                 else
                 {
-                    f.setValue(true);
+                    f.setTruthValue(true);
                 }
             }
 
         }
     }
+    private bool checkConditionValue(Condition c)
+    {
+        //data[0] contains a string for the type of value to check, data[1] contains the number.
+        string[] data = c.getValue().Split(':');
+        //Debug.Log(data[0] + ", " + data[1]);
+        if(data[0].Equals("Population"))
+        {
+            if(int.Parse(data[1]) < tower.getPopulation())
+            {
+                return true;
+            }
+        }       
+        else if(data[0].Equals("Highest Floor"))
+        {
+            if (int.Parse(data[1]) < tower.getHighestFloor())
+            {
+                return true;
+            }
+        }
+        else if(data[0].Equals("Human Population"))
+        {
+            if(int.Parse(data[1]) < tower.getHumanPop())
+            {
+                return true;
+            }
+        }
+        else if (data[0].Equals("Result"))
+        {
 
-    
+        }
+        return false;
+    }
+
+    public void setToolTip(Result r)
+    {
+        GameObject tip;
+    }
 
     private void addPotentialEvents()
     {
@@ -250,54 +176,39 @@ public class EventManager : MonoBehaviour {
 
                 foreach (Flag f in e.getFlags())
                 {
-                   
-                    if (flagList[f.getID()].getValue() == false)
-                    {
 
+                    if (flagList[f.getID()].getTruthValue() == false)
+                    {
+                        truth = false;
+                        
                         break;
                     }
                     else
                     {
                         truth = true;
-                    }
+                    }                    
                 }
                 if (truth && potentialEventList.Contains(e) == false && e.getTitle() != "")
-                {
+                {                  
                     potentialEventList.Add(e);
                 }
             }                      
         }        
     }
 
-    public void doResult(int val, int amount)
+    public void doResult(string result)
     {
-        switch (val)
+        Debug.Log(result);
+        string[] data = result.Split(':');
+        if (data[0].Equals("Money"))
         {
-            case 0:
-                game.setCurrentYear(game.getCurrentYear() + amount);
-                break;
-            case 1:
-                tower.setTotalPopulation(tower.getPopulation() + amount);
-                break;
-            case 2:
-                break;
-            case 3:
-                break;
-        }
-    }
-    public void doResult(int val, float amount)
-    {
-        switch (val)
-        {
-            case 6:
-                game.setMoney(game.getMoney() + amount);
-                break;
+            game.setMoney(game.getMoney() + int.Parse(data[1]));
         }
     }
 
     private void checkPotentialEvents()
     {
-        Debug.Log("Checking " + potentialEventList.Count + " Events");
+        //Debug.Log("Checking " + potentialEventList.Count + " Events");
         int eventToPop = Random.Range(0, totalWeight);
         int iterateWeight = 0;
         foreach(Event e in potentialEventList)
@@ -330,31 +241,8 @@ public class EventManager : MonoBehaviour {
             Condition c = new Condition();
             int id = int.Parse(lineData[0]);
             string s = lineData[1];
-            
-            int t = 0;
-            int v = 0;
-            if(lineData[2] != "")
-            {
-                t = int.Parse(lineData[2]);
-            }
-            if(lineData[3] != "")
-            {
-                v = int.Parse(lineData[3]);
-            }
-            bool b;
-            if (bool.TryParse(lineData[4], out b))
-            {
-                c.Init(id, t, v, s, b);
-            }
-            float f;
-            if(float.TryParse(lineData[5], out f))
-            {
-                c.Init(id, t, v, s, f);
-            }        
-            int i;
-            if (int.TryParse(lineData[6], out i)){
-                c.Init(id, t, v, s, i);
-            }
+
+            c.Init(id, s);           
             conditionList.Add(c);
         }
     }
@@ -366,6 +254,7 @@ public class EventManager : MonoBehaviour {
         for (int j = 0; j < lines.Length; j++)
         {
             string[] lineData = (lines[j].Trim()).Split(","[0]);
+            
             List<Condition> con = new List<Condition>();
             int id = int.Parse(lineData[0]);
             string s = lineData[1];
@@ -373,7 +262,7 @@ public class EventManager : MonoBehaviour {
             string[] conditions = lineData[2].Split("/"[0]);
             
             foreach(string c in conditions)
-            {
+            {             
                 int pos = int.Parse(c);
                 con.Add(conditionList[pos]);
             }
@@ -396,34 +285,7 @@ public class EventManager : MonoBehaviour {
             int id = int.Parse(lineData[0]);
             string s = lineData[1];
             string txt = lineData[2];
-            int t = 0;
-            int v = 0;
-            if (lineData[3] != "")
-            {
-                t = int.Parse(lineData[3]);
-            }
-            if (lineData[4] != "")
-            {
-                v = int.Parse(lineData[4]);
-            }
-            bool b;
-            if (bool.TryParse(lineData[5], out b))
-            {
-                r.Init(id, t, v, s, txt, b);
-            }
-            float f;
-          
-            if (float.TryParse(lineData[6], out f))
-            {
-                r.Init(id, t, v, s, txt, f);
-            }
-            
-
-            int i;
-            if (int.TryParse(lineData[7], out i))
-            {
-                r.Init(id, t, v, s, txt, i);
-            }
+            r.Init(id, txt, s);
             resultList.Add(r);
         }
     }
@@ -440,16 +302,9 @@ public class EventManager : MonoBehaviour {
             int id = int.Parse(lineData[0]);
             string title = lineData[1];
             string text = lineData[2];
-            for(int i = 0; i < text.Length; i++)
-            {
-                if(text[i] == '_')
-                {
-                    char[] c = text.ToCharArray();
-                    c[i] = ',';
-                    text = c.ToString();
-                }
-            }
-                    
+
+            text = text.Replace('_', ',');
+                 
             int[] flagIDs = new int[10];
             string[] flags = (lineData[3].Trim().Split("/"[0]));
             for(int i = 0; i < flags.Length; i++)
@@ -464,9 +319,11 @@ public class EventManager : MonoBehaviour {
             string[] results = lineData[4].Trim().Split("/"[0]);
             for(int i = 0; i < results.Length; i++)
             {
+                Debug.Log(results[i]);
                 if(results[i] != "")
                 {
                     resultIDs[i] = int.Parse(results[i]);
+                    
                 }
                 
             }
@@ -477,8 +334,9 @@ public class EventManager : MonoBehaviour {
             }
            
             e.Init(getFlagsFromList(flagIDs), getResultsFromList(resultIDs), id, title, text, weight);
+            
             eventList.Add(e);
-            Debug.Log("Name:" + e.getTitle() + ", Requirement: " + e.getFlags()[0].getName() + " is " + e.getFlags()[0].getValue());
+           // Debug.Log("Name:" + e.getTitle() + ", Requirement: " + e.getFlags()[0].getName() + " is " + e.getFlags()[0].getTruthValue());
         }
 
     }
@@ -507,8 +365,10 @@ public class EventManager : MonoBehaviour {
         {
             foreach(Result result in resultList)
             {
+                
                 if(result.getID() == r[i] && result.getID() != 0)
                 {
+                    
                     returnList.Add(result);
                     
                 }

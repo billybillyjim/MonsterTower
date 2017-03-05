@@ -40,7 +40,7 @@ public class GameRun : MonoBehaviour {
 
     private int currentPop;
 
-    public bool testing = true;
+    public bool testing = false;
 
     //Not currently using this
     enum Days { Sat, Sun, Mon, Tue, Wed, Thu, Fri };
@@ -73,6 +73,7 @@ public class GameRun : MonoBehaviour {
         {
             day++;
             hour = 0;
+            em.updateEvents();
 
             if(day > daysInMonth)
             {
@@ -119,12 +120,11 @@ public class GameRun : MonoBehaviour {
 
     private void setTexts()
     {
-        if (!testing)
-        {
+
             Date.text = "Date:" + (month + 1) + "/" + day + "/" + year + " and " + hour + " Hours";
             cashtext.text = "$" + cash;
             mm.updateRents();
-        }      
+             
     }
 
     private void earnRent()

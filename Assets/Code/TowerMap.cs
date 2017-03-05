@@ -21,11 +21,22 @@ public class TowerMap : MonoBehaviour {
     private List<Building> elevatorList = new List<Building>();
     [SerializeField]
     private int totalPopulation;
+    [SerializeField]
     private int humanPopulation;
+    [SerializeField]
     private int zombiePopulation;
+    [SerializeField]
     private int witchPopulation;
+    [SerializeField]
     private int demonPopulation;
-    public bool testing = true;
+    private List<Building> buildingsList = new List<Building>();
+    
+    //TODO:Implement this.
+    [SerializeField]
+    private int highestFloor;
+    private int currentMapType;
+
+    public bool testing = false;
     public List<Sprite> testList = new List<Sprite>();
 
     private string humanSpriteFolder = "Buildings/Humans";
@@ -231,6 +242,7 @@ public class TowerMap : MonoBehaviour {
             {
                 elevatorList.Add(towerMap[x, y]);
             }
+            buildingsList.Add(towerMap[x, y]);
        
         }
         //Bulldoze
@@ -242,6 +254,7 @@ public class TowerMap : MonoBehaviour {
                 bulldoze(x, y);
                 GameRun.chargeMoney(Tools.currentToolCost);
                 setDesirability(towerMap[x, y]);
+                buildingsList.Remove(towerMap[x, y]);
             }            
         }       
     }
@@ -468,6 +481,28 @@ public class TowerMap : MonoBehaviour {
     {
         return buildingSpritesList;
     }
+    public void setMap(int i)
+    {
+        currentMapType = 1;
+        if(i == 0)
+        {
+            foreach (Building b in buildingsList)
+            {
+                b.GetComponent<SpriteRenderer>().color = Color.white;
+            }
+        }
+        else if(i == 1)
+        {
+            foreach (Building b in buildingsList)
+            {
+                float red = b.getDesirability();
+                
+
+                b.GetComponent<SpriteRenderer>().color = new Color(1/(10-red), 0, 0);
+            }
+        }
+
+    }
     public int getHumanPop()
     {
         return humanPopulation;
@@ -503,5 +538,28 @@ public class TowerMap : MonoBehaviour {
     {
         demonPopulation += i;
         totalPopulation += i;
+    }
+    public void setHighestFloor(int i)
+    {
+        highestFloor = i;
+    }
+    public int getHighestFloor()
+    {
+        return highestFloor;
+    }
+    public Color getCurrentMapColor(Building b)
+    {
+        if(currentMapType == 0)
+        {
+            return Color.white;
+        }
+        else if(currentMapType == 1)
+        {
+            return b.GetComponent<SpriteRenderer>().color = new Color(1 / (10 - b.getDesirability()), 0, 0);
+        }
+        else
+        {
+            return Color.white;
+        }
     }
 }

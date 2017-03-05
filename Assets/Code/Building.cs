@@ -100,14 +100,15 @@ public class Building : MonoBehaviour {
         }
         if(Tools.currentTool != -1)
         {
+            TowerMap tower = GameObject.Find("Tower").GetComponent<TowerMap>();
             if (Input.GetMouseButton(0))
             {
-                GameObject.Find("Tower").GetComponent<TowerMap>().build(wVal, hVal);
+                tower.build(wVal, hVal);
             }
             if ((buildingType == -1 || buildingType == 3) && !isOccupied)
             {
                 GetComponent<SpriteRenderer>().sprite = GameObject.Find("Tower").GetComponent<TowerMap>().getBuildingSpritesList()[Tools.currentTool][0];
-                GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, .5f);
+                GetComponent<SpriteRenderer>().color = tower.getCurrentMapColor(this);
                 GetComponent<SpriteRenderer>().sortingOrder = 10;
             }
         }
@@ -115,11 +116,12 @@ public class Building : MonoBehaviour {
     }
     void OnMouseExit()
     {
+        TowerMap tower = GameObject.Find("Tower").GetComponent<TowerMap>();
         GetComponent<SpriteRenderer>().sprite = buildingSprite;
         if (buildingType != -1)
         {
             
-            GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 1);
+            GetComponent<SpriteRenderer>().color = tower.getCurrentMapColor(this);
             GetComponent<SpriteRenderer>().sortingOrder = 0;
         }
         else
