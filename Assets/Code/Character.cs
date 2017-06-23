@@ -1,96 +1,90 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 
 public class Character : MonoBehaviour {
 
-    private float moveSpeed = 1f;
-    private Building goal;
-    private Building finalGoal;
+    [SerializeField]
+    private float moveSpeed = .1f;
     [SerializeField]
     private int currentFloor;
-    private bool isStopped = false;
     
-    void Start()
-    {
-        currentFloor = 1;
+    public Vector2 finalGoal;
+    public Vector2 currentGoal;
+    [SerializeField]
+    private List<Elevator> route = new List<Elevator>();
+    [SerializeField]
+    private Queue<Elevator> qRoute = new Queue<Elevator>();
+    [SerializeField]
+    private Queue<float[,]> qFloatRoute = new Queue<float[,]>();
 
-    }
-    public void Init(Building b)
+    void OnEnable()
     {
-        finalGoal = b;
-        Debug.Log("Final Goal:" + b.getFloor());
-    }
-
-    void Update()
-    {
-        if (!isStopped)
-        {
-            moveTowardsGoal();
-        }       
-    }
-    void OnMouseUp()
-    {
-        
-        
-    }
-    private void stop()
-    {
-        isStopped = true;
-    }
-    private void moveTo(float x)
-    {       
-        if(Mathf.Abs(transform.position.x - x) < 1)
-        {
-            stop();
-        }
-        if(transform.position.x < x)
-        {
-            gameObject.transform.Translate(new Vector3(x * Time.deltaTime, 0, 0));
-        }
-        else if (transform.position.x > x)
-        {
-            gameObject.transform.Translate(new Vector3(-x * Time.deltaTime, 0, 0));
-        }
-
+        currentFloor = FloorSpaceManager.convertPositionToFloor(transform.position.y);
+        GetComponent<SpriteRenderer>().sortingOrder = 50;
     }
     public void setGoal(Building b)
     {
-        goal = b;
+        finalGoal = new Vector2(b.getX(), b.getY()) ;
+        planRoute();
     }
-    private void moveTowardsGoal()
+    public void planRoute()
     {
-        if (!isStopped)
+        Elevator e = RouteManager.scanForElevatorsOnFloor(FloorSpaceManager.convertPositionToFloor(finalGoal.y), currentFloor);
+
+        if (e.checkForAccess(currentFloor))
         {
-            if (currentFloor == finalGoal.getFloor())
-            {
-                Debug.Log("Moving");
-                moveTo(finalGoal.getX());
-            }
-            else
-            {
-                findElevator();
-            }
-        }        
+            qRoute.Enqueue(e);
+        }
+
     }
-    private void findElevator()
+    public void executeRoute()
     {
-        Building e = GameObject.Find("Tower").GetComponent<TowerMap>().findElevator(currentFloor);
-        
-        if (e != null)
-        {         
-            setGoal(e);
+        while(qRoute.Count > 0)
+        {
+            currentGoal = qRoute.Dequeue().transform.position;
+            
+        }
+    }
+    private void goToElevator(Elevator e)
+    {
+        transform.position = new Vector3(Mathf.MoveTowards(transform.position.x, e.transform.position.x, moveSpeed), transform.position.y);
+    }
+    private void goToBuilding(Building b)
+    {
+        transform.position = new Vector3(Mathf.MoveTowards(transform.position.x, b.transform.position.x, moveSpeed), transform.position.y);
+    }
+    private void goToGoal()
+    {
+        transform.position = new Vector3(Mathf.MoveTowards(transform.position.x, finalGoal.x, moveSpeed), transform.position.y);
+        if(Mathf.Approximately(finalGoal.x, transform.position.x))
+        {
+            gameObject.SetActive(false);
+        }
+    }
+    public void tick()
+    {
+        if (FloorSpaceManager.convertPositionToFloor(finalGoal.y) == currentFloor)
+        { 
+            goToGoal();
         }
         else
         {
-            findStairs();
+            transform.position = new Vector3(Mathf.MoveTowards(transform.position.x, currentGoal.x, moveSpeed), transform.position.y);
         }
     }
-    private void findStairs()
+    void OnMouseUp()
     {
-
+        executeRoute();
     }
-    private void leave()
+    void OnCollisionEnter2D(Collision2D coll)
     {
-
+        if(coll.gameObject.tag == "Elevator")
+        {
+            coll.gameObject.GetComponent<Elevator>().callCar(currentFloor);
+        }
+    }
+    public void setCurrentFloor(int i)
+    {
+        currentFloor = i;
     }
 }

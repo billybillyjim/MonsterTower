@@ -4,7 +4,7 @@ using System.Collections;
 public class AudioManager : MonoBehaviour {
 
     public AudioClip buttonClick;
-    AudioSource audio;
+    new AudioSource audio;
 
     void Start()
     {

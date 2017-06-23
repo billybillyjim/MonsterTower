@@ -1,32 +1,23 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
+using System.Collections.Generic;
 
 public class Tools : MonoBehaviour{
 
-    public static int currentTool;
-    public static float currentToolCost;
-    public static int toolWidth;
-    public static int toolHeight;
-    public static int toolMinPop;
-    public static int toolMaxPop;
+    public static Tool currentTool;
+    public static Tool empty;
 
     [SerializeField]
     private Sprite selectedButtonSprite;
     [SerializeField]
     private Sprite buttonSprite;
 
+    private List<Tool> toolList = new List<Tool>();
+
     private Transform currentButton;
-
-    private float[] costArray = new float[80];
-    private int[] widthArray = new int[80];
-    private int[] heightArray = new int[80];
-    private string[] nameArray = new string[80];
-    private int[] minPopArray = new int[80];
-    private int[] maxPopArray = new int[80];
-
+    
     [SerializeField]
-    private Transform[] buttonArray = new Transform[20];
+    private List<Transform> buttonList = new List<Transform>();
 
     [SerializeField]
     private Color humanColor;
@@ -36,8 +27,8 @@ public class Tools : MonoBehaviour{
     private Color witchColor;
     [SerializeField]
     private Color demonColor;
+
     private int currentPanel;
-    private int numOfRoomTypes;
 
     public void setPanelColor(int i)
     {
@@ -63,111 +54,117 @@ public class Tools : MonoBehaviour{
         }
         currentPanel = i;
         
-        setTool(currentTool);
+        setTool(currentTool.getName());
     }
-
-    public void setTool(int c)
+    public void setTool(string s)
     {
-        if(c == -1)
+
+        if (currentPanel == 1 && 
+            !s.Equals("Inspect"))
+        {           
+            s = s.Insert(0, "Zombie");           
+        }
+        if (s.Equals("Elevator") || s.Equals("Empty") || s.Equals("Inspect"))
         {
-            currentTool = -1;            
+            TowerMap tower = GameObject.Find("Tower").GetComponent<TowerMap>();
+            tower.showHideElevators(true);
         }
         else
         {
-            while (c >= numOfRoomTypes)
-            {
-                c -= numOfRoomTypes;
-            }
-            int i = c + (currentPanel * (numOfRoomTypes));
-            currentTool = i;
-            setToolCost(i);
-            setToolWidth(i);
-            setToolHeight(i);
-        }           
+            TowerMap tower = GameObject.Find("Tower").GetComponent<TowerMap>();
+            tower.showHideElevators(false);
+        }
+
+        currentTool = toolList.Find(x => x.getName().Equals(s));
+        
     }
     void Start()
     {
         
         loadData();
         loadButtons();
-        setTool(0);
+        currentTool = toolList.Find(x => x.getName().Equals("Office"));
+        //Sets the empty tool to the right one for access in the building class.
+        empty = toolList[9];
+        hideAllButtons();
+        unlockButton("Office");
+        unlockButton("Lobby");
+        unlockButton("Bulldoze");
+        unlockButton("Train");
+        unlockButton("Elevator");
+        unlockButton("Inspect");
 
     }
     private void loadData()
     {
-        string file = System.IO.File.ReadAllText("Assets/Resources/BuildingData.txt");
-        string[] lines = file.Split("\n"[0]);
-       
-        
+        TextAsset textfile = Resources.Load<TextAsset>("BuildingData");
+        string file = textfile.text;
+        string[] lines = file.Split("\n"[0]);     
+                
         for(int j = 0; j < lines.Length; j++)
         {
             string[] lineData = (lines[j].Trim()).Split(","[0]);        
                
-            nameArray[j] = lineData[0];
-            costArray[j] = float.Parse(lineData[1]);
-            widthArray[j] = int.Parse(lineData[2]);            
-            heightArray[j] = int.Parse(lineData[3]);
-            minPopArray[j] = int.Parse(lineData[4]);
-            maxPopArray[j] = int.Parse(lineData[5]);
-
-                numOfRoomTypes++;
-            
+            toolList.Add(new Tool(lineData[0], float.Parse(lineData[1]), int.Parse(lineData[2]), int.Parse(lineData[3]), int.Parse(lineData[4]), int.Parse(lineData[5]), j));
         }
-        numOfRoomTypes /= 4;
     }
     private void loadButtons()
     {
-        int i = 0;
         foreach (Transform t in gameObject.GetComponentInChildren<Transform>())
         {
             if(t.parent == this.transform)
             {
-                buttonArray[i] = t;
-                i++;
+                buttonList.Add(t);
             }
         }
     }
-    public void setButtonAsSelected(int i)
+    public void setButtonAsSelected(string s)
     {
-        if(currentButton != null)
+        int i = toolList.IndexOf(toolList.Find(x => x.getName().Equals(s)));
+        
+        if (currentButton != null)
         {
             currentButton.GetComponent<Image>().sprite = buttonSprite;
         }
-        currentButton = buttonArray[i];
+        currentButton = buttonList[i];
         currentButton.GetComponent<Image>().sprite = selectedButtonSprite;
-
     }
-    private void setToolCost(int i)
+    public void setButtonAsSelected(Transform t)
     {
-        currentToolCost = costArray[currentTool];
+        if (currentButton != null)
+        {
+            currentButton.GetComponent<Image>().sprite = buttonSprite;
+        }
+        currentTool.setButton(t);
+        currentButton = currentTool.getButton();
+        currentButton.GetComponent<Image>().sprite = selectedButtonSprite;
     }
-    public void setToolWidth(int i)
-    {
-        toolWidth = widthArray[i];
-    }
-    public void setToolHeight(int i)
-    {
-        toolHeight = heightArray[i];
-    }
-
 	public int getCurrentTool()
     {
-        return currentTool;
-    }
-    public int getToolWidth()
-    {
-        return toolWidth;
+        return toolList.IndexOf(currentTool);
     }
     public int getPopToMoveIn(int i)
     {
-        return Random.Range(minPopArray[i], maxPopArray[i]);
+        return Random.Range(toolList[i].getMinPop(), toolList[i].getMaxPop());
     }
-    public void setToolAsSelected(int i)
+    public Tool getTool(int i)
     {
-
+        return toolList[i];
     }
-    private int convertRoomToButton(int i)
+    private void hideAllButtons()
     {
-        return 0;
+        foreach(Transform t in buttonList)
+        {
+            t.gameObject.SetActive(false);
+        }
+    }
+    private void unlockButton(int i)
+    {
+        buttonList[i].gameObject.SetActive(true);
+    }
+    private void unlockButton(string s)
+    {
+        //int i = toolList.IndexOf(toolList.Find(x => x.getName().Equals(s)));
+        buttonList.Find(x => x.name.Contains(s)).gameObject.SetActive(true);
     }
 }

@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
+using System.Collections.Generic;
+using System;
+using cakeslice;
 
 public class GameRun : MonoBehaviour {
 
@@ -14,6 +16,13 @@ public class GameRun : MonoBehaviour {
     private Tools tool;
     [SerializeField]
     private EventManager em;
+    [SerializeField]
+    private CashManager cm;
+
+    [SerializeField]
+    private Character witch;
+    [SerializeField]
+    private GameObject witchObject;
 
     private Building[,] towerMap;
 
@@ -33,23 +42,28 @@ public class GameRun : MonoBehaviour {
     private float daysInMonth;
     private float lastMonthRent;
     private float lastMonthUtilities;
-    private int[] buildingNumbers;
 
     private float[] rents;
     private float[] expenses;
 
     private int currentPop;
-
+    public static Camera camera;
     public bool testing = false;
+    public Sprite selecte;
+
+    public List<Building> selectedBuildings = new List<Building>();
+    public List<Character> characters = new List<Character>();
 
     //Not currently using this
     enum Days { Sat, Sun, Mon, Tue, Wed, Thu, Fri };
-
-
+    private Vector2 boxStartPos = Vector2.zero;
+    private Vector2 boxEndPos = Vector2.zero;
+    public Texture SelectionTexture;
     // Use this for initialization
     void Start () {
+        camera = GameObject.Find("Main Camera").GetComponent<Camera>();
         //Normal Play Speed
-        gameSpeed = .3f;
+        gameSpeed = .0f;
         //Starting Cash
         //TODO: Make this load on game load.
         cash = 100000;
@@ -57,7 +71,7 @@ public class GameRun : MonoBehaviour {
         month = 0;
         //Starting days in January
         daysInMonth = 31;
-        day = 1;
+        day = 30;
         hour = 12;
         year = 2017;
         daysInMonths = new int[12];
@@ -67,44 +81,207 @@ public class GameRun : MonoBehaviour {
 	}
 	void Update()
     {
+        getInputs();
+        tick();
+        setTexts();
+        // Called while the user is holding the mouse down.
+        if (Input.GetKey(KeyCode.Mouse0) && Tools.currentTool.getName().Equals("Inspect"))
+        {
+            // Called on the first update where the user has pressed the mouse button.
+            if (Input.GetKeyDown(KeyCode.Mouse0))
+                boxStartPos = Input.mousePosition;
+            else  // Else we must be in "drag" mode.
+                boxEndPos = Input.mousePosition;
+        }
+        else
+        {
+            // Handle the case where the player had been drawing a box but has now released.
+            if (boxEndPos != Vector2.zero && boxStartPos != Vector2.zero)
+                selectBuildings(boxStartPos, boxEndPos);
+            // Reset box positions.
+            boxEndPos = boxStartPos = Vector2.zero;
+        }
+    }
+    private void selectBuildings(Vector2 start, Vector2 end)
+    {
+
+        Vector2 newStart = camera.ScreenToWorldPoint(start);
+        Vector2 newEnd = camera.ScreenToWorldPoint(end);
+
+        float width = Math.Abs(newStart.x - newEnd.x);
+        float height = Math.Abs(newStart.y - newEnd.y);
+
+        if (Math.Abs(width) > .25f || Math.Abs(height) > .25f)
+        {
+        GameObject selectorBox = new GameObject();
+
+        BoxCollider2D box = selectorBox.AddComponent<BoxCollider2D>();
+        SelectionBox select = selectorBox.AddComponent<SelectionBox>();
+        Rigidbody2D body = selectorBox.AddComponent<Rigidbody2D>();
+        select.setGameRun(this);
+        body.gravityScale = 0;
+            
+            box.isTrigger = true;
+            if (newStart.x > newEnd.x)
+            {
+                box.transform.position = newEnd;
+            }
+            else if (newStart.x <= newEnd.x)
+            {
+                box.transform.position = newStart;
+            }
+            if(newStart.y < newEnd.y)
+            {
+                box.transform.position = new Vector3(box.transform.position.x, newEnd.y);
+            }
+            else if(newStart.y >= newEnd.y)
+            {
+                box.transform.position = new Vector3(box.transform.position.x, newStart.y);
+            }
+
+            box.offset = new Vector3(width / 2, -height / 2);
+            box.size = new Vector2(width, height);
+
+            selectedBuildings.AddRange(select.getBuildings());
+        }
+    }
+
+    public void addBuildingsToSelectedBuildings(List<Building> b)
+    {
+        
+        if (!Input.GetKey(KeyCode.LeftShift) && !Input.GetKey(KeyCode.RightShift))
+        {
+            foreach (Building bu in selectedBuildings)
+            {
+                bu.GetComponent<cakeslice.Outline>().enabled = false;
+            }
+            selectedBuildings.Clear();
+        }
+        Debug.Log(b.Count);
+        selectedBuildings.AddRange(b);
+
+        if(selectedBuildings.Count > 0)
+        {
+            foreach (Building bu in selectedBuildings)
+            {
+                if (bu.gameObject.GetComponent<SpriteRenderer>().sprite != null)
+                {                  
+                    bu.gameObject.GetComponent<cakeslice.Outline>().enabled = true;
+                }
+
+            }
+        }
+        tower.getInspectMenu().updateTexts(b);
+    }
+
+    public void addBuildingToSelectedBuildings(Building b)
+    {
+
+        if (!Input.GetKey(KeyCode.LeftShift) && !Input.GetKey(KeyCode.RightShift))
+        {
+            foreach (Building bu in selectedBuildings)
+            {
+                bu.GetComponent<cakeslice.Outline>().enabled = false;
+            }
+            selectedBuildings.Clear();
+        }
+
+
+        selectedBuildings.Add(b);
+
+        if (selectedBuildings.Count > 0)
+        {
+            foreach (Building bu in selectedBuildings)
+            {
+                if (bu.gameObject.GetComponent<SpriteRenderer>().sprite != null)
+                {
+                    bu.gameObject.GetComponent<cakeslice.Outline>().enabled = true;
+                }
+
+            }
+        }
+        tower.getInspectMenu().updateTexts(b);
+    }
+
+    void OnGUI()
+    {
+        if (boxStartPos != Vector2.zero && boxEndPos != Vector2.zero)
+        {
+            // Create a rectangle object out of the start and end position while transforming it
+            // to the screen's cordinates.
+            var rect = new Rect(boxStartPos.x, Screen.height - boxStartPos.y,
+                                boxEndPos.x - boxStartPos.x,
+                                -1 * (boxEndPos.y - boxStartPos.y));
+            // Draw the texture.
+            //GUI.DrawTexture(rect, SelectionTexture);
+            GUI.DrawTexture(new Rect(boxStartPos.x, Screen.height - boxStartPos.y,
+                                5,
+                                 -1 * (boxEndPos.y - boxStartPos.y)), SelectionTexture);
+            GUI.DrawTexture(new Rect(boxStartPos.x, Screen.height - boxStartPos.y,
+                               boxEndPos.x - boxStartPos.x,
+                                5), SelectionTexture);
+            GUI.DrawTexture(new Rect(boxEndPos.x - 5, Screen.height - boxStartPos.y,
+                                5,
+                                 -1 * (boxEndPos.y - boxStartPos.y)), SelectionTexture);
+            GUI.DrawTexture(new Rect(boxStartPos.x, Screen.height - boxEndPos.y - 5,
+                               boxEndPos.x - boxStartPos.x,
+                                5), SelectionTexture);
+        }
+    }
+    private void tick()
+    {
         //Time step
         hour += gameSpeed;
-        if(hour >= 24)
+        foreach(Elevator e in tower.getElevators())
+        {
+            e.tick();
+        }
+        foreach (Character c in characters)
+        {
+            c.tick();
+        }
+        if (hour >= 24)
         {
             day++;
             hour = 0;
             em.updateEvents();
 
-            if(day > daysInMonth)
+            if (day > daysInMonth)
             {
                 tickMonth();
 
                 //Accounts for leap years.
-                if(year % 4 == 0 && year % 400 == 0 && year % 100 != 0)
+                if (year % 4 == 0 && year % 400 == 0 && year % 100 != 0)
                 {
-                    if(month == 1)
+                    if (month == 1)
                     {
                         daysInMonth = 29;
-                    }     
+                    }
                 }
                 else
                 {
                     daysInMonth = daysInMonths[month];
                 }
-                
+
                 day = 1;
-                
+
                 //Months go from 0-11
-                if(month >= 11)
+                if (month >= 11)
                 {
                     year++;
                     month = 0;
                 }
             }
         }
-         setTexts();
     }
-
+    private void getInputs()
+    {
+        if (Input.GetKeyDown("o"))
+        {
+            tool.setTool("Office");
+            tool.setButtonAsSelected("Office");
+        }
+    }
     private void tickMonth()
     {
         month++;
@@ -144,6 +321,10 @@ public class GameRun : MonoBehaviour {
         cash += total;
         lastMonthRent = total;
     }
+    public void setGoal()
+    {
+        tower.setGoal(selectedBuildings[0]);
+    }
     private void payUtilities()
     {
         towerMap = tower.getTowerMap();
@@ -160,23 +341,6 @@ public class GameRun : MonoBehaviour {
         cash -= total;
         lastMonthUtilities = total;
     }
-    public void testEvents()
-    {
-        int i = em.getEventList().Count;
-        foreach(Event e in em.getEventList())
-        {
-            setConditionsForEventTest(e);
-            test();
-        }
-    }
-    private void setConditionsForEventTest(Event e)
-    {
-
-    }
-    private void test()
-    {
-        
-    }
     private void checkMoveIns()
     {
         towerMap = tower.getTowerMap();
@@ -189,8 +353,16 @@ public class GameRun : MonoBehaviour {
                 {
                     int i = tool.getPopToMoveIn(b.getBuildingType());
                     b.moveIn(i);
-                    b.setSprite(tower.getRandomBuildingSprite(towerMap[b.getX(), b.getY()].getBuildingType()));
+                    b.setSprite(tower.getBuildingData().Find(x => x.getTypeName().Equals(b.getBuildingTypeString())).getFullSprite());
                     tower.addPopulation(i);
+                    for(int j = 0; j < i; j++)
+                    {
+                        Character witch = Instantiate(witchObject, new Vector3(UnityEngine.Random.Range(-1f, 1f), 41f, 0), Quaternion.identity).GetComponent<Character>();
+                        characters.Add(witch);
+                        witch.setCurrentFloor(1);
+                        witch.setGoal(b);
+                        witch.executeRoute();
+                    }                 
                 }
             }          
         }
@@ -207,7 +379,7 @@ public class GameRun : MonoBehaviour {
                 if(b.getDesirability() < 5)
                 {
                     b.moveOut();
-                    b.setSprite(tower.getEmptyBuildingSprite(towerMap[b.getX(), b.getY()].getBuildingType()));
+                    b.setSprite(tower.getBuildingData().Find(x => x.getTypeName().Equals(b.getBuildingTypeString())).getEmptySprite());
                     tower.addPopulation(-10);
                 }
             }
@@ -281,9 +453,5 @@ public class GameRun : MonoBehaviour {
     public void setCurrentYear(int i)
     {
         year = i;
-    }
-    public int getBuildingValue(int i)
-    {
-        return buildingNumbers[i];
     }
 }

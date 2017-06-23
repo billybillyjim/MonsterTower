@@ -29,8 +29,10 @@ public class Background : MonoBehaviour {
             for(int j = 0; j < backgroundHeight; j++)
             {               
                 GameObject t = (GameObject)Instantiate(bgUnit, new Vector3(i, j), Quaternion.identity) as GameObject;
+                t.GetComponent<SpriteRenderer>().sortingOrder = -2;
                 bgUnits[i, j] = t.transform;
                 t.GetComponent<SpriteRenderer>().sprite = Resources.Load("board/sky", typeof(Sprite)) as Sprite;
+                t.transform.SetParent(this.transform);
             }
         }
     }

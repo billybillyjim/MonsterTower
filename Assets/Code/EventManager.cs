@@ -11,7 +11,6 @@ public class EventManager : MonoBehaviour {
     private List<Event> eventList = new List<Event>();
     private List<Event> potentialEventList = new List<Event>();
     private List<Result> resultList = new List<Result>();
-    private int currentConditionCheck = 0;
     [SerializeField]
     private GameObject eventPanel;
     [SerializeField]
@@ -22,7 +21,7 @@ public class EventManager : MonoBehaviour {
     private Transform canvas;
     [SerializeField]
     private Vector3 eventPopUpPos;
-    private int totalWeight;
+    private int totalWeight = 0;
 
     public int addPotentialEventInterval;
     public int updateFlagInterval;
@@ -42,10 +41,7 @@ public class EventManager : MonoBehaviour {
         InvokeRepeating("addPotentialEvents", 5, addPotentialEventInterval);
         InvokeRepeating("updateFlags", 4, updateFlagInterval);
         InvokeRepeating("checkPotentialEvents", 6, checkPotentialEventInterval);
-        foreach(Result r in resultList)
-        {
-            Debug.Log(r.getName());
-        }
+
     }
     void Update()
     {
@@ -319,7 +315,6 @@ public class EventManager : MonoBehaviour {
             string[] results = lineData[4].Trim().Split("/"[0]);
             for(int i = 0; i < results.Length; i++)
             {
-                Debug.Log(results[i]);
                 if(results[i] != "")
                 {
                     resultIDs[i] = int.Parse(results[i]);

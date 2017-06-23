@@ -18,11 +18,11 @@ public class Result : Condition{
     {
         return resultName;
     }
-    public int getID()
+    new public int getID()
     {
         return id;
     }
-    public string getValue()
+    new public string getValue()
     {
         return value;
     }

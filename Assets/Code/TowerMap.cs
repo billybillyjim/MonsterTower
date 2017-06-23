@@ -1,10 +1,14 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections.Generic;
+using System;
 
 public class TowerMap : MonoBehaviour {
 
     [SerializeField]
     private int towerWidth;
+    [SerializeField]
+    private GameRun game;
     [SerializeField]
     private float[,] desireChart = new float[50,50];
     [SerializeField]
@@ -16,9 +20,9 @@ public class TowerMap : MonoBehaviour {
     [SerializeField]
     private List<Sprite> buildingSpriteList = new List<Sprite>();
     [SerializeField]
-    private List<List<Sprite>> buildingSpritesList = new List<List<Sprite>>();
+    public static List<Elevator> elevatorList = new List<Elevator>();
     [SerializeField]
-    private List<Building> elevatorList = new List<Building>();
+    private GameObject elevator;
     [SerializeField]
     private int totalPopulation;
     [SerializeField]
@@ -30,7 +34,16 @@ public class TowerMap : MonoBehaviour {
     [SerializeField]
     private int demonPopulation;
     private List<Building> buildingsList = new List<Building>();
-    
+    private List<BuildingData> buildingDataList = new List<BuildingData>();
+    private List<int> lobbyFloors = new List<int>();
+
+    public InspectMenu inspectMenu;
+
+    public Toggle seeElevatorsToggle;
+
+    public GameObject testCharacterObject;
+    public Character witch;
+
     //TODO:Implement this.
     [SerializeField]
     private int highestFloor;
@@ -39,33 +52,38 @@ public class TowerMap : MonoBehaviour {
     public bool testing = false;
     public List<Sprite> testList = new List<Sprite>();
 
-    private string humanSpriteFolder = "Buildings/Humans";
-    private string zombieSpriteFoler = "Buildings/Zombies";
-    private string witchSpriteFolder = "Buildings/Witches";
-    private string demonSpriteFolder = "Buildigns/Demons";
+    private string spriteFolder = "Buildings";
+
     private int co;
 
     // Use this for initialization
     void Start () {
+
+        setLobbyFloors();
         if (!testing)
         {
             towerHeight = 140;
             towerWidth = 100;
 
         }
-        sizeRatio = .5f;
+        sizeRatio = 1f;
 	    towerMap = new Building[towerWidth,towerHeight];
         
-        loadSpriteList(humanSpriteFolder);
-        loadSpriteList(zombieSpriteFoler);
-        loadSpriteList(witchSpriteFolder);
-        loadSpriteList(demonSpriteFolder);
+        loadSpritesList(spriteFolder);
+
         loadDesireChart();
+
         createTower();
-        //InvokeRepeating("SpawnWitch", 10, 1);
+        
+        //witch = Instantiate(testCharacterObject, new Vector3(0,20.5f,0), Quaternion.identity).GetComponent<Character>();
+        //witch.setCurrentFloor(1);
        
     }
-
+    public void setGoal(Building b)
+    {
+        //witch.setGoal(b);
+        //witch.executeRoute();
+    }
 
 	//Makes the whole tower
     private void createTower()
@@ -80,6 +98,7 @@ public class TowerMap : MonoBehaviour {
                 towerMap[i, j] = b.GetComponent<Building>();
                 createDirt(j, b);
                 b.GetComponent<Building>().Init(i, j);
+                t.transform.SetParent(this.transform);
             }
         }
     }
@@ -89,23 +108,19 @@ public class TowerMap : MonoBehaviour {
     {
         if (j == 40)
         {
-            b.GetComponent<Building>().setSprite(buildingSpritesList[3][0], 3);
-
+            b.GetComponent<Building>().makeGroundSprites(buildingDataList.Find(x => x.typeName.Equals("Ground") == true).getFullSpriteByName("Ground_Grass"), 3);
         }
         if (j > 15 && j < 40)
         {
-            b.GetComponent<Building>().setSprite(buildingSpritesList[3][1], 3);
-
+            b.GetComponent<Building>().makeGroundSprites(buildingDataList.Find(x => x.typeName.Equals("Ground") == true).getFullSpriteByName("Ground_1"), 3);
         }
         if (j == 15)
         {
-            b.GetComponent<Building>().setSprite(buildingSpritesList[3][2], 3);
-
+            b.GetComponent<Building>().makeGroundSprites(buildingDataList.Find(x => x.typeName.Equals("Ground") == true).getFullSpriteByName("Ground_Deep"), 3);
         }
         if (j < 15)
         {
-            b.GetComponent<Building>().setSprite(buildingSpritesList[3][3], 3);
-
+            b.GetComponent<Building>().makeGroundSprites(buildingDataList.Find(x => x.typeName.Equals("Ground") == true).getFullSpriteByName("Ground_Deeper"), 3);
         }
         
         if (j > 40)
@@ -117,154 +132,109 @@ public class TowerMap : MonoBehaviour {
             b.GetComponent<Building>().setFloor(j - 41);
             b.GetComponent<Building>().setDirt(true);
         }
+        b.GetComponent<SpriteRenderer>().sortingOrder = -1;
     }
-    //Loads Sprites
-    //TODO: Make it not suck
-    private void loadSpriteList(string location)
+
+    //Loads the sprites, adding them to buildingData. Each buildingData contains a set of sprites organized by name.
+    //Names are decided by the word before the first underscore.
+    //All empty rooms must have "Empty" somewhere in their name.
+    private void loadSpritesList(string location)
     {
-
         List<Sprite> allSprites = new List<Sprite>();
-        List<Sprite> officeSprites = new List<Sprite>();
-        List<Sprite> restaurantSprites = new List<Sprite>();
-        List<Sprite> hotelSprites = new List<Sprite>();
-        List<Sprite> hotel2BedSprites = new List<Sprite>();
-        List<Sprite> condoSprites = new List<Sprite>();
-        List<Sprite> stairSprites = new List<Sprite>();
-        List<Sprite> cafeSprites = new List<Sprite>();
-        List<Sprite> dirtSprites = new List<Sprite>();
-        List<Sprite> elevatorSprites = new List<Sprite>();
-        List<Sprite> emptySprites = new List<Sprite>();
-        List<Sprite> hotelSuiteSprites = new List<Sprite>();
-        List<Sprite> entertainmentSprites = new List<Sprite>();
-        List<Sprite> utilitySprites = new List<Sprite>();
-
         allSprites.AddRange(Resources.LoadAll<Sprite>(location));
 
         foreach (Sprite s in allSprites)
-        {
-            char n = s.name[0];
-            if (n == 'o')
-            {
-                officeSprites.Add(s);
-            }
-            else if(n == 'r')
-            {
-                restaurantSprites.Add(s);
-            }
-            else if (n == 'w')
-            {
-                cafeSprites.Add(s);
-            }
-            else if (n == 'd')
-            {
-                dirtSprites.Add(s);
-            }
-            else if(n == 'e')
-            {
-                elevatorSprites.Add(s);
-            }
-            else if (n == 'c')
-            {
-                condoSprites.Add(s);
-            }
-            else if (n == 'h')
-            {
-                hotelSprites.Add(s);
-            }
-            else if (n == 't')
-            {
-                hotel2BedSprites.Add(s);
-            }
-            else if (n == 's')
-            {
-                stairSprites.Add(s);
-            }
-            else if (n == '1')
-            {
-                emptySprites.Add(s);
-            }
-            else if (n == 'q')
-            {
-                hotelSuiteSprites.Add(s);
-            }
-            else if(n == 'E')
-            {
-                entertainmentSprites.Add(s);
-            }
-            else if(n == 'U')
-            {
-                utilitySprites.Add(s);
-            }
-            
-        }
-        //This currently loads in a specific order that the Tools class uses in order to differentiate factional buildings.
-        //0
-        buildingSpritesList.Add(officeSprites);      
-        //1
-        buildingSpritesList.Add(restaurantSprites);
-        //2
-        buildingSpritesList.Add(elevatorSprites);
-        //3
-        buildingSpritesList.Add(dirtSprites);
-        //4
-        buildingSpritesList.Add(cafeSprites);
-        //5
-        buildingSpritesList.Add(hotelSprites);
-        //6
-        buildingSpritesList.Add(hotel2BedSprites);
-        //7
-        buildingSpritesList.Add(condoSprites);
-        //8
-        buildingSpritesList.Add(stairSprites);
-        //9
-        buildingSpritesList.Add(emptySprites);
-        //10
-        buildingSpritesList.Add(hotelSuiteSprites);
-        //11
-        buildingSpritesList.Add(entertainmentSprites);
-        //12
-        buildingSpritesList.Add(utilitySprites);
-        
-    }
+        {           
+            string type = s.name.Split('_')[0];
+            BuildingData bd = new BuildingData();
+            bool exists = false;
 
+            for (int i = 0; i < buildingDataList.Count; i++)
+            {
+                if (buildingDataList[i].getTypeName().Equals(type))
+                {
+                    bd = buildingDataList[i];
+                    exists = true;
+                }
+            }
+
+            if (exists == false)
+            {
+                bd = new BuildingData(type);
+                buildingDataList.Add(bd);
+            }
+
+            if (s.name.Contains("Empty"))
+            {
+                bd.addEmpty(s);
+            }
+            else
+            {
+                bd.addFull(s);
+            }
+        }
+    }
     //Builds at given coordinates using the current tool.
     public void build(int x, int y)
     {
         //Checks if the spaces are available to build and if the player has enough money to play. Tool 9 is the bulldozer and has different rules.
-        if(checkIfBuildable(x,y, Tools.toolHeight) && GameRun.cash >= Tools.currentToolCost && Tools.currentTool != 9){
-            
-                towerMap[x, y].setSprite(buildingSpritesList[Tools.currentTool][0], Tools.currentTool);      
-                GameRun.chargeMoney(Tools.currentToolCost);
-                occupy(x, y);
-                setDesirability(towerMap[x, y]);
+        if(checkIfBuildable(x,y, Tools.currentTool.getHeight()) && GameRun.cash >= Tools.currentTool.getCost() && Tools.currentTool.getName() != "Empty"){
 
-            if(Tools.currentTool == 2)
+            //The rules for building Lobbies
+            if (y == 41 && !Tools.currentTool.getName().Equals("Lobby"))
             {
-                elevatorList.Add(towerMap[x, y]);
+                return;
+            }
+            if(!lobbyFloors.Contains(y) && Tools.currentTool.getName().Equals("Lobby"))
+            {               
+                return;
+            }
+            if((y != 41 && lobbyFloors.Contains(y)) && Tools.currentTool.getName().Equals("Lobby") && !towerMap[x, y - 1].getBuildingTypeString().Equals("Lobby"))
+            {
+                return;
+            }
+
+
+            occupy(x, y);
+            towerMap[x, y].setSprite(buildingDataList.Find(b => b.getTypeName().Equals(Tools.currentTool.getName())).getEmptySprite(), Tools.currentTool);      
+            GameRun.chargeMoney(Tools.currentTool.getCost());
+            DesiribilityModifier baseModifier = new DesiribilityModifier("Base", 15f);
+            towerMap[x, y].addDesiribilityModifier(baseModifier);
+           
+            if (Tools.currentTool.getName().Equals("Lobby"))
+            {
+                updateLobbySprites(x,y);
+            }
+            if (Tools.currentTool.getName().Equals("Office"))
+            {
+                testCharacterObject.GetComponent<Character>().setGoal(towerMap[x,y]);
+                
             }
             buildingsList.Add(towerMap[x, y]);
        
         }
         //Bulldoze
-        if(Tools.currentTool == 9)
+        if(Tools.currentTool.getName().Equals("Empty"))
         {
             //Only bulldozes non-empty buildings.
             if(towerMap[x,y].getBuildingType() != 9)
             {
+                
                 bulldoze(x, y);
-                GameRun.chargeMoney(Tools.currentToolCost);
-                setDesirability(towerMap[x, y]);
-                buildingsList.Remove(towerMap[x, y]);
+                
             }            
         }       
     }
-
+    public void inspect(int x, int y)
+    {
+        inspectMenu.updateTexts(towerMap[x, y]);
+    }
     //Checks to see if you can build somewhere based on the current tool. Returns true if all spaces are unoccupied.
     private bool checkIfBuildable(int x, int y, int height)
     {
-            for (int i = 0; i < Tools.toolWidth; i++)
+            for (int i = 0; i < Tools.currentTool.getWidth(); i++)
             {
-                for (int j = 0; j < Tools.toolHeight; j++)
+                for (int j = 0; j < Tools.currentTool.getHeight(); j++)
                 {
                     //If the location isn't occupied, do nothing.
                     if (!towerMap[x + i, y + j].getIsOccupied())
@@ -296,8 +266,8 @@ public class TowerMap : MonoBehaviour {
                 {
                     if(x != towerWidth &&
                         x + i <= towerWidth &&
-                        towerMap[x + i, y + Tools.toolHeight].getIsOccupied() ||
-                        towerMap[x + i, y + Tools.toolHeight].getBuildingType() == 9)
+                        towerMap[x + i, y + Tools.currentTool.getHeight()].getIsOccupied() ||
+                        towerMap[x + i, y + Tools.currentTool.getHeight()].getBuildingType() == 9)
                     {
 
                     }
@@ -315,77 +285,87 @@ public class TowerMap : MonoBehaviour {
     //Fills in used spaces.
     private void occupy(int x, int y)
     {
-        for(int i = 0; i < Tools.toolWidth; i++)
+        for (int i = 0; i < Tools.currentTool.getWidth(); i++)
         {
-            for(int j = 0; j < Tools.toolHeight; j++)
+            for (int j = 0; j < Tools.currentTool.getHeight(); j++)
             {
+                towerMap[x + i, y + j].GetComponent<SpriteRenderer>().sprite = null;
                 towerMap[x + i, y + j].setIsOccupied(true);
-            }            
+            }
         }
+
+        setCollisionBox(x, y);
+
 
     }
     //TODO: Make it suck less. Currently it changes all empties to a different sprite if the random chance hits.
-    private void bulldoze(int x, int y)
+    public void bulldoze(int x, int y)
     {
-        //Random chance of a different empty sprite.
-        int chance = Random.Range(0, 50);
         int w = towerMap[x, y].getWidth();
         int h = towerMap[x, y].getHeight();
+        GameRun.chargeMoney(Tools.currentTool.getCost());
+        buildingsList.Remove(towerMap[x, y]);
 
-        //If the deleted building is an elevator
-        if(towerMap[x,y].getBuildingType() == 2)
+        for (int i = 0; i < w; i++)
         {
-
-        }
-
-        if (chance > 45)
-        {
-            for (int i = 0; i < w; i++)
+            for(int j = 0; j < h; j++)
             {
-                for(int j = 0; j < h; j++)
-                {
-                    towerMap[x + i, y + j].setIsOccupied(false);
-                    towerMap[x + i, y + j].setSprite(buildingSpritesList[Tools.currentTool][Random.Range(0, buildingSpritesList[Tools.currentTool].Count)], Tools.currentTool);
-                }                               
+                towerMap[x + i, y + j].setIsOccupied(false);
+                towerMap[x + i, y + j].setSpriteToEmpty(buildingDataList.Find(b => b.getTypeName().Equals("Empty")).getEmptySprite());
+                towerMap[x + i, y + j].gameObject.GetComponent<SpriteRenderer>().color = getCurrentMapColor(towerMap[x + i, y + j]);
+                towerMap[x + i, y + j].gameObject.GetComponent<SpriteRenderer>().sortingOrder = 0;
             }
         }
-        else
-        {
-            for (int i = 0; i < w; i++)
-            {
-                for (int j = 0; j < h; j++)
-                {
-                    towerMap[x + i, y + j].setIsOccupied(false);
-                    towerMap[x + i, y + j].setSprite(buildingSpritesList[Tools.currentTool][0], Tools.currentTool);
-                }
-            }
-        }
-        
-       
-        
+        setCollisionBox(x, y);
     }
+    public void buildElevator()
+    {
+        Camera c = GameRun.camera;
+
+        double x = Math.Floor((c.ScreenToWorldPoint(Input.mousePosition).x));
+        double y = Math.Round(c.ScreenToWorldPoint(Input.mousePosition).y);
+        if (towerMap[(int)x, (int)y].getBuildingTypeString().Equals("Empty") ||
+            towerMap[(int)x, (int)y].getIsOccupied())
+        {
+        
+            GameObject newElevator = Instantiate(elevator, new Vector2((float)(x), (float)(y)), Quaternion.identity);
+
+            elevatorList.Add(newElevator.GetComponent<Elevator>());
+        }
+    }
+
+    public void bulldozeElevator(Elevator e)
+    {
+        elevatorList.Remove(e);
+        Destroy(e.gameObject);
+    }
+    public void showHideElevators(bool b)
+    {
+        seeElevatorsToggle.isOn = b;
+        foreach(Elevator e in elevatorList)
+        {
+            e.toggleEnabled(b);
+            e.makeTransparent(b);
+           
+        }
+    }
+
     //TODO: Make it faster. Maybe use a preset array?
     private void setDesirability(Building b)
     {
-        int x;
-        int y;
-        b.getCoordinates(out x, out y);
-        int t = b.getBuildingType();
-
-        float desire = 0;
-
-        Building[,] neighbors = getNeighbors(x, y);
-        foreach(Building building in neighbors)
-        {
-            if(building != null && building.getBuildingType() != -1)
-            {
-                desire += desireChart[t, building.getBuildingType()];
-            }
-        }
-        b.setDesirability(desire);
-        
+        b.addDesiribilityModifier(new DesiribilityModifier("Happy", 15f));
     }
+    public void addToInspectList(Building b)
+    {
+        game.addBuildingToSelectedBuildings(b);
+    }
+    //Sets the collision box to the size of the room.
+    private void setCollisionBox(int x, int y)
+    {
+        towerMap[x, y].gameObject.GetComponent<BoxCollider2D>().offset = new Vector2(Tools.currentTool.getWidth() / 4.0f, (Tools.currentTool.getHeight() - 1) * .25f);
+        towerMap[x, y].gameObject.GetComponent<BoxCollider2D>().size = new Vector2(Tools.currentTool.getWidth() / 2.0f, Tools.currentTool.getHeight() / 2.0f);
 
+    }
     public Building[,] getTowerMap()
     {
         return towerMap;
@@ -419,7 +399,31 @@ public class TowerMap : MonoBehaviour {
 
         return neighbors;
     }
-
+    private void setLobbyFloors()
+    {
+        lobbyFloors.Add(41);
+        lobbyFloors.Add(42);
+        lobbyFloors.Add(43);
+        lobbyFloors.Add(56);
+    }
+    private void updateLobbySprites(int x, int y)
+    {
+        if(towerMap[x, y - 2].getBuildingTypeString().Equals("Lobby"))
+        {
+            towerMap[x, y - 2].setSprite(buildingDataList.Find(b => b.getTypeName().Equals("LobbyBot")).getEmptySprite());
+            towerMap[x, y - 1].setSprite(buildingDataList.Find(b => b.getTypeName().Equals("LobbyMid")).getEmptySprite());
+            towerMap[x, y].setSprite(buildingDataList.Find(b => b.getTypeName().Equals("LobbyTop")).getEmptySprite());
+        }
+        else if (towerMap[x, y - 1].getBuildingTypeString().Equals("Lobby"))
+        {
+            towerMap[x, y].setSprite(buildingDataList.Find(b => b.getTypeName().Equals("LobbyTop")).getEmptySprite());
+            towerMap[x, y - 1].setSprite(buildingDataList.Find(b => b.getTypeName().Equals("LobbyBot")).getEmptySprite());
+        }
+        else
+        {
+            towerMap[x, y].setSprite(buildingDataList.Find(b => b.getTypeName().Equals("LobbyOne")).getEmptySprite());
+        }
+    }
     private void loadDesireChart()
     {
         string file = System.IO.File.ReadAllText("Assets/Resources/BuildingDesireChart.csv");
@@ -433,23 +437,11 @@ public class TowerMap : MonoBehaviour {
             }
         }
     }
-    public List<Building> getElevators()
+    public List<Elevator> getElevators()
     {
         return elevatorList;
     }
-    public Building findElevator(int y)
-    {
-        
-        foreach(Building b in elevatorList)
-        {
-            if (y == b.getFloor())
-            {
-                
-                return b;
-            }
-        }
-        return null;
-    }
+ 
     public void setTotalPopulation(int i)
     {
         totalPopulation = i;
@@ -458,28 +450,10 @@ public class TowerMap : MonoBehaviour {
     {
         totalPopulation += i;
     }
-    public Sprite getRandomBuildingSprite(int i)
-    {
-        if(buildingSpritesList[i].Count > 1)
-        {
-            return buildingSpritesList[i][Random.Range(1, buildingSpritesList[i].Count)];
-        }
-        else
-        {
-            return buildingSpritesList[i][0];
-        }
-    }
-    public Sprite getEmptyBuildingSprite(int i)
-    {
-        return buildingSpritesList[i][0];
-    }
+
     public int getPopulation()
     {
         return totalPopulation;
-    }
-    public List<List<Sprite>> getBuildingSpritesList()
-    {
-        return buildingSpritesList;
     }
     public void setMap(int i)
     {
@@ -561,5 +535,13 @@ public class TowerMap : MonoBehaviour {
         {
             return Color.white;
         }
+    }
+    public List<BuildingData> getBuildingData()
+    {
+        return buildingDataList;
+    }
+    public InspectMenu getInspectMenu()
+    {
+        return inspectMenu;
     }
 }
