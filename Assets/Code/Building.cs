@@ -145,7 +145,7 @@ public class Building : MonoBehaviour {
             return;
         }
         //If a tool is selected
-        if (Tools.currentTool != null && Tools.currentTool.getName() != "Inspect")
+        if (Tools.currentTool != null && Tools.currentTool.getName() != "Inspect" && Tools.currentTool.getName() != "Elevator")
         {
             if (Tools.currentTool.getName().Equals("Empty") && buildingType != 3 && buildingType != 9)
             {

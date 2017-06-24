@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 public class ElevatorCar : MonoBehaviour {
@@ -15,6 +16,9 @@ public class ElevatorCar : MonoBehaviour {
     [SerializeField]
     private List<GameObject> contents = new List<GameObject>();
 
+    private int minFloor;
+    private int maxFloor;
+
     private float lerpTime = 1;
     private float currentLerpTime = 0;
     private float time = 0;
@@ -28,6 +32,7 @@ public class ElevatorCar : MonoBehaviour {
         //Mathf.Lerp(transform.position.y, (float)i, time)
         //Debug.Log("Lerping to" + i + " from " + currentFloor);
         //Debug.Log("Heading to position " + FloorSpaceManager.convertFloorToPosition(i) + " which is supposedly floor " + i);
+        i = (int)Mathf.Clamp(i, minFloor, maxFloor);
         transform.position = new Vector2(transform.position.x, Mathf.MoveTowards(transform.position.y, FloorSpaceManager.convertFloorToPosition(i), .1f));
     }
 
@@ -61,7 +66,6 @@ public class ElevatorCar : MonoBehaviour {
             {
                 currentFloor = FloorSpaceManager.convertPositionToFloorIfEqual(transform.position.y);
             }      
-            Debug.Log(transform.position.y + " floor " + currentFloor);
             if (Mathf.Approximately(floorQueue.Peek(), currentFloor))
             {
                 floorQueue.Dequeue();
@@ -117,5 +121,11 @@ public class ElevatorCar : MonoBehaviour {
                 c.executeRoute();
             }
         }
+    }
+
+    public void setFloorMinMax(int min, int max)
+    {
+        minFloor = min;
+        maxFloor = max;
     }
 }

@@ -28,8 +28,8 @@ public class RouteManager : MonoBehaviour {
                 }
             }
         }
-        
 
+        Debug.Log(bestFit.highestFloor);
         return bestFit;
     }
     

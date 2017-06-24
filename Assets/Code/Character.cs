@@ -29,17 +29,47 @@ public class Character : MonoBehaviour {
     }
     public void planRoute()
     {
+
         Elevator e = RouteManager.scanForElevatorsOnFloor(FloorSpaceManager.convertPositionToFloor(finalGoal.y), currentFloor);
+
+        qRoute.Enqueue(e);
 
         if (e.checkForAccess(currentFloor))
         {
-            qRoute.Enqueue(e);
+            return;
+        }
+        else
+        {
+            planRoute(e);
         }
 
     }
+    public void planRoute(Elevator elevator)
+    {
+        Elevator e;
+        if(currentFloor < FloorSpaceManager.convertPositionToFloor(finalGoal.y))
+        {
+            e = RouteManager.scanForElevatorsOnFloor(elevator.lowestFloor, currentFloor);
+        }
+        else
+        {
+            e = RouteManager.scanForElevatorsOnFloor(elevator.highestFloor, currentFloor);
+        }
+
+        qRoute.Enqueue(e);
+
+        if (e.checkForAccess(currentFloor))
+        {
+            return;
+        }
+        else
+        {
+            planRoute(e);
+        }
+    }
     public void executeRoute()
     {
-        while(qRoute.Count > 0)
+        if(qRoute.Count > 0)
         {
             currentGoal = qRoute.Dequeue().transform.position;
             

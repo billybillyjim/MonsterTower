@@ -157,7 +157,6 @@ public class GameRun : MonoBehaviour {
             }
             selectedBuildings.Clear();
         }
-        Debug.Log(b.Count);
         selectedBuildings.AddRange(b);
 
         if(selectedBuildings.Count > 0)

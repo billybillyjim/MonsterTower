@@ -101,8 +101,12 @@ public class Elevator : MonoBehaviour {
     }
     private void updateFloors()
     {
-        highestFloor = (int)(upDragRect.transform.position.y) - 40;
-        lowestFloor = (int)(downDragRect.transform.position.y) - 40;
+        highestFloor = FloorSpaceManager.convertPositionToFloor(upDragRect.transform.position.y - 1);
+        lowestFloor = FloorSpaceManager.convertPositionToFloor(downDragRect.transform.position.y);
+        foreach(ElevatorCar c in cars)
+        {
+            c.setFloorMinMax(lowestFloor, highestFloor);
+        }
     }
 
     public bool checkForAccess(int i)

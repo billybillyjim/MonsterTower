@@ -48,7 +48,6 @@ public static class FloorSpaceManager{
     {
         int i = (int)f;
         float k = f;
-        Debug.Log(i + ", " + k);
         if(Mathf.Approximately(i, k))
         {
             if (f < 40)
