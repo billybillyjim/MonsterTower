@@ -14,12 +14,14 @@ public class Elevator : MonoBehaviour {
     public int highestFloor;
     public int lowestFloor;
 
+    public int id;
+
     private bool isBeingDragged = false;
 
 	// Use this for initialization
 	void Start () {
         tower = GameObject.Find("Tower").GetComponent<TowerMap>();
-        GetComponentInChildren<SpriteRenderer>().sortingOrder = 10;
+        GetComponentInChildren<SpriteRenderer>().sortingOrder = 50;
         upDragRect.GetComponent<ElevatorDragRect>().setElevatorAsParent(this);
         upDragRect.GetComponent<ElevatorDragRect>().setIsTopRect(true);
         downDragRect.GetComponent<ElevatorDragRect>().setElevatorAsParent(this);
@@ -99,9 +101,9 @@ public class Elevator : MonoBehaviour {
     {
         isBeingDragged = b;
     }
-    private void updateFloors()
+    public void updateFloors()
     {
-        highestFloor = FloorSpaceManager.convertPositionToFloor(upDragRect.transform.position.y - 1);
+        highestFloor = FloorSpaceManager.convertPositionToFloor(upDragRect.transform.position.y);
         lowestFloor = FloorSpaceManager.convertPositionToFloor(downDragRect.transform.position.y);
         foreach(ElevatorCar c in cars)
         {
@@ -123,5 +125,9 @@ public class Elevator : MonoBehaviour {
     public void callCar(int i)
     {      
         cars[0].addFloorToQueue(i);
+    }
+    public Vector2 getSpaceUsed()
+    {
+        return new Vector2(highestFloor, lowestFloor);
     }
 }

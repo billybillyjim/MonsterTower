@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System;
 using UnityEngine;
 
@@ -15,6 +16,8 @@ public class ElevatorCar : MonoBehaviour {
     private UniqueQueue<int> floorQueue = new UniqueQueue<int>();
     [SerializeField]
     private List<GameObject> contents = new List<GameObject>();
+    [SerializeField]
+    private UniqueQueue<Character> waitQueue = new UniqueQueue<Character>();
 
     private int minFloor;
     private int maxFloor;
@@ -62,11 +65,14 @@ public class ElevatorCar : MonoBehaviour {
 
         if (floorQueue.Count > 0)
         {
+            Debug.Log("Elevator " + gameObject.GetComponentInParent<Elevator>().id + " going to floor " + floorQueue.Peek());
             if (FloorSpaceManager.convertPositionToFloorIfEqual(transform.position.y) != 0)
             {
                 currentFloor = FloorSpaceManager.convertPositionToFloorIfEqual(transform.position.y);
+                
+                addCharacterQueueToCar();
             }      
-            if (Mathf.Approximately(floorQueue.Peek(), currentFloor))
+            if (floorQueue.Peek() == currentFloor)
             {
                 floorQueue.Dequeue();
                 dropOffContents();
@@ -77,6 +83,16 @@ public class ElevatorCar : MonoBehaviour {
             }
         }
     }
+    private void addCharacterQueueToCar()
+    {
+        while(waitQueue.Count != 0)
+        {
+            Character c = waitQueue.Dequeue();
+            contents.Add(c.gameObject);
+            addFloorToQueue(FloorSpaceManager.convertPositionToFloor(c.gameObject.GetComponent<Character>().currentGoal.y));
+            c.gameObject.SetActive(false);
+        }
+    }
     public void setCurrentFloor(int i)
     {
         currentFloor = i;
@@ -85,42 +101,55 @@ public class ElevatorCar : MonoBehaviour {
     {
         if (coll.gameObject.tag == "Character")
         {
-            contents.Add(coll.gameObject);
-            capacity++;
-            addFloorToQueue(FloorSpaceManager.convertPositionToFloor(coll.gameObject.GetComponent<Character>().finalGoal.y));
-            coll.gameObject.SetActive(false);
+            // contents.Add(coll.gameObject);
+            if (coll.gameObject.GetComponent<Character>().getCurrentFloor() == currentFloor){
+                waitQueue.Enqueue(coll.gameObject.GetComponent<Character>());
+                
+            }
+            else
+            {
+                waitQueue.Enqueue(coll.gameObject.GetComponent<Character>());
+            }
+            //capacity++;
+            // addFloorToQueue(FloorSpaceManager.convertPositionToFloor(coll.gameObject.GetComponent<Character>().finalGoal.y));
+            // coll.gameObject.SetActive(false);
         }
     }
     private void dropOffContents()
     {
+        List<GameObject> removeList = new List<GameObject>();
         for(int i = 0; i < contents.Count; i++)
         {
             GameObject g = contents[i];
+
            // Debug.Log("Current Floor: " + currentFloor + ", Character Final Goal Y: " + g.GetComponent<Character>().finalGoal.y + ", Converted Goal Y: " + FloorSpaceManager.convertPositionToFloor(g.GetComponent<Character>().finalGoal.y));
-            if(g.GetComponent<Character>() != null && (FloorSpaceManager.convertPositionToFloor(g.GetComponent<Character>().finalGoal.y)) == currentFloor)
+            if(g.GetComponent<Character>() != null && FloorSpaceManager.convertPositionToFloor(g.GetComponent<Character>().currentGoal.y) == currentFloor)
             {
                 Character c = g.GetComponent<Character>();
-                if(transform.position.x > c.finalGoal.x)
-                {
-                    g.transform.position = transform.position - new Vector3(.1f, 0);
-                }
-                else
-                {
-                    g.transform.position = transform.position + new Vector3(.6f, 0);
-                }
+                Debug.Log(c.nextGoal + ", " + c.currentGoal);
 
-                c.setCurrentFloor(currentFloor);
-                if(FloorSpaceManager.convertPositionToFloor(c.finalGoal.y) == currentFloor)
-                {
                     Physics2D.IgnoreCollision(g.GetComponent<Collider2D>(), GetComponent<Collider2D>());
-                }
+
+                    if (transform.position.x > c.finalGoal.x)
+                    {
+                        g.transform.position = transform.position - new Vector3(.1f, 0);
+                    }
+                    else
+                    {
+                        g.transform.position = transform.position + new Vector3(.6f, 0);
+                    }
+
+                    c.setCurrentFloor(currentFloor);
+
+                    g.SetActive(true);
+                    capacity--;
+                    removeList.Add(g);
+                    c.executeRoute();
                 
-                g.SetActive(true);
-                capacity--;
-                contents.Remove(g);
-                c.executeRoute();
+
             }
         }
+        contents = contents.Except(removeList).ToList();
     }
 
     public void setFloorMinMax(int min, int max)

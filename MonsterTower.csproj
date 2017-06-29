@@ -88,6 +88,7 @@
     <Compile Include="Assets\Code\Condition.cs" />
     <Compile Include="Assets\Code\DesiribilityModifier.cs" />
     <Compile Include="Assets\Code\Elevator.cs" />
+    <Compile Include="Assets\Code\ElevatorCar.cs" />
     <Compile Include="Assets\Code\ElevatorDragRect.cs" />
     <Compile Include="Assets\Code\Event.cs" />
     <Compile Include="Assets\Code\EventManager.cs" />
@@ -115,7 +116,6 @@
     <Compile Include="Assets\Code\Tools.cs" />
     <Compile Include="Assets\Code\TowerMap.cs" />
     <Compile Include="Assets\Code\UniqueQueue.cs" />
-    <Compile Include="Assets\ElevatorCar.cs" />
     <Compile Include="Assets\OutlineEffect\Demo\OutlineAnimation.cs" />
     <Compile Include="Assets\OutlineEffect\Demo\Rotate.cs" />
     <Compile Include="Assets\OutlineEffect\Demo\Toggle.cs" />

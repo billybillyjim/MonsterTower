@@ -7,13 +7,16 @@ public class Character : MonoBehaviour {
     private float moveSpeed = .1f;
     [SerializeField]
     private int currentFloor;
+
+    public int id;
     
     public Vector2 finalGoal;
     public Vector2 currentGoal;
+    public Vector2 nextGoal;
     [SerializeField]
     private List<Elevator> route = new List<Elevator>();
     [SerializeField]
-    private Queue<Elevator> qRoute = new Queue<Elevator>();
+    private Stack<Elevator> qRoute = new Stack<Elevator>();
     [SerializeField]
     private Queue<float[,]> qFloatRoute = new Queue<float[,]>();
 
@@ -28,52 +31,34 @@ public class Character : MonoBehaviour {
         planRoute();
     }
     public void planRoute()
-    {
-
-        Elevator e = RouteManager.scanForElevatorsOnFloor(FloorSpaceManager.convertPositionToFloor(finalGoal.y), currentFloor);
-
-        qRoute.Enqueue(e);
-
-        if (e.checkForAccess(currentFloor))
-        {
-            return;
-        }
-        else
-        {
-            planRoute(e);
-        }
-
+    {       
+        qRoute = RouteManager.getElevatorRouteQueue(FloorSpaceManager.convertPositionToFloor(finalGoal.y), currentFloor);
     }
-    public void planRoute(Elevator elevator)
-    {
-        Elevator e;
-        if(currentFloor < FloorSpaceManager.convertPositionToFloor(finalGoal.y))
-        {
-            e = RouteManager.scanForElevatorsOnFloor(elevator.lowestFloor, currentFloor);
-        }
-        else
-        {
-            e = RouteManager.scanForElevatorsOnFloor(elevator.highestFloor, currentFloor);
-        }
 
-        qRoute.Enqueue(e);
-
-        if (e.checkForAccess(currentFloor))
-        {
-            return;
-        }
-        else
-        {
-            planRoute(e);
-        }
-    }
     public void executeRoute()
     {
-        if(qRoute.Count > 0)
+        
+        if (qRoute.Count > 0)
         {
-            currentGoal = qRoute.Dequeue().transform.position;
+            Debug.Log("qRoute size: " + qRoute.Count);
+            Debug.Log(id + " going to " + qRoute.Peek().id + "to get to floor" + qRoute.Peek().transform.position);
+            currentGoal = qRoute.Pop().transform.position;
+            if(qRoute.Count > 0)
+            {
+                nextGoal = qRoute.Peek().transform.position;
+            }
+            else
+            {
+                nextGoal = currentGoal;
+            }
             
         }
+        else
+        {
+            currentGoal = finalGoal;
+            Debug.Log(id + " going to " + finalGoal.y);
+        }
+        
     }
     private void goToElevator(Elevator e)
     {
@@ -102,10 +87,6 @@ public class Character : MonoBehaviour {
             transform.position = new Vector3(Mathf.MoveTowards(transform.position.x, currentGoal.x, moveSpeed), transform.position.y);
         }
     }
-    void OnMouseUp()
-    {
-        executeRoute();
-    }
     void OnCollisionEnter2D(Collision2D coll)
     {
         if(coll.gameObject.tag == "Elevator")
@@ -116,5 +97,9 @@ public class Character : MonoBehaviour {
     public void setCurrentFloor(int i)
     {
         currentFloor = i;
+    }
+    public int getCurrentFloor()
+    {
+        return currentFloor;
     }
 }

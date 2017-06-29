@@ -41,7 +41,6 @@ public class TowerMap : MonoBehaviour {
 
     public Toggle seeElevatorsToggle;
 
-    public GameObject testCharacterObject;
     public Character witch;
 
     //TODO:Implement this.
@@ -178,7 +177,9 @@ public class TowerMap : MonoBehaviour {
     public void build(int x, int y)
     {
         //Checks if the spaces are available to build and if the player has enough money to play. Tool 9 is the bulldozer and has different rules.
-        if(checkIfBuildable(x,y, Tools.currentTool.getHeight()) && GameRun.cash >= Tools.currentTool.getCost() && Tools.currentTool.getName() != "Empty"){
+        if(checkIfBuildable(x,y, Tools.currentTool.getHeight()) && 
+            GameRun.cash >= Tools.currentTool.getCost() && 
+            Tools.currentTool.getName() != "Empty"){
 
             //The rules for building Lobbies
             if (y == 41 && !Tools.currentTool.getName().Equals("Lobby"))
@@ -198,17 +199,17 @@ public class TowerMap : MonoBehaviour {
             occupy(x, y);
             towerMap[x, y].setSprite(buildingDataList.Find(b => b.getTypeName().Equals(Tools.currentTool.getName())).getEmptySprite(), Tools.currentTool);      
             GameRun.chargeMoney(Tools.currentTool.getCost());
+            if (Tools.currentTool.getName().Equals("Lobby"))
+            {
+                DesiribilityModifier lobbyMod = new DesiribilityModifier("Lobby", -1000f);
+                towerMap[x, y].addDesiribilityModifier(lobbyMod);
+            }
             DesiribilityModifier baseModifier = new DesiribilityModifier("Base", 15f);
             towerMap[x, y].addDesiribilityModifier(baseModifier);
            
             if (Tools.currentTool.getName().Equals("Lobby"))
             {
                 updateLobbySprites(x,y);
-            }
-            if (Tools.currentTool.getName().Equals("Office"))
-            {
-                testCharacterObject.GetComponent<Character>().setGoal(towerMap[x,y]);
-                
             }
             buildingsList.Add(towerMap[x, y]);
        
@@ -313,6 +314,7 @@ public class TowerMap : MonoBehaviour {
                 towerMap[x + i, y + j].setIsOccupied(false);
                 towerMap[x + i, y + j].setSpriteToEmpty(buildingDataList.Find(b => b.getTypeName().Equals("Empty")).getEmptySprite());
                 towerMap[x + i, y + j].gameObject.GetComponent<SpriteRenderer>().color = getCurrentMapColor(towerMap[x + i, y + j]);
+                towerMap[x + i, y + j].clearDesirability();
                 towerMap[x + i, y + j].gameObject.GetComponent<SpriteRenderer>().sortingOrder = 0;
             }
         }
@@ -324,13 +326,20 @@ public class TowerMap : MonoBehaviour {
 
         double x = Math.Floor((c.ScreenToWorldPoint(Input.mousePosition).x));
         double y = Math.Round(c.ScreenToWorldPoint(Input.mousePosition).y);
-        if (towerMap[(int)x, (int)y].getBuildingTypeString().Equals("Empty") ||
-            towerMap[(int)x, (int)y].getIsOccupied())
-        {
-        
-            GameObject newElevator = Instantiate(elevator, new Vector2((float)(x), (float)(y)), Quaternion.identity);
 
-            elevatorList.Add(newElevator.GetComponent<Elevator>());
+        //Checks for empty slots occupied by buildings greater than 1x1, then for empty buildings, then for occupied buildings.
+        if ((towerMap[(int)x, (int)y].getBuildingType() == -1 && towerMap[(int)x, (int)y].getIsOccupied()) || 
+            towerMap[(int)x, (int)y].getBuildingTypeString().Equals("Empty") ||
+            towerMap[(int)x, (int)y].getIsOccupied()) 
+        {
+            if(!checkForElevatorInTheWay((int)x, (int)y - 1, (int)y + 1))
+            {
+                GameObject newElevator = Instantiate(elevator, new Vector2((float)(x), (float)(y)), Quaternion.identity);
+                newElevator.GetComponent<Elevator>().id = elevatorList.Count;
+                elevatorList.Add(newElevator.GetComponent<Elevator>());
+                newElevator.GetComponent<Elevator>().updateFloors();
+
+            }          
         }
     }
 
@@ -345,11 +354,36 @@ public class TowerMap : MonoBehaviour {
         foreach(Elevator e in elevatorList)
         {
             e.toggleEnabled(b);
-            e.makeTransparent(b);
-           
+            e.makeTransparent(b);      
         }
     }
-
+    //returns true if there is no elevator in the way
+    public bool checkForElevatorInTheWay(int x, int low, int high)
+    {
+        low = FloorSpaceManager.convertPositionToFloor(low);
+        high = FloorSpaceManager.convertPositionToFloor(high);
+       // Debug.Log("x low high " + x + " " + (low) + " " + (high));
+        foreach (Elevator e in elevatorList)
+        {
+            if(e.transform.position.x == x)
+            {
+               // Debug.Log("x lowest highest " + x + " " + (e.lowestFloor) + " " + (e.highestFloor));
+                if (e.lowestFloor <= high && e.highestFloor >= low)
+                {
+                    if(e.lowestFloor <= high)
+                    {
+                        Debug.Log("The lowest floor, " + e.lowestFloor + " is less than or equal to the high, " + high);
+                    }
+                    else if (e.highestFloor >= low)
+                    {
+                        Debug.Log("The highest floor, " + e.highestFloor + " is greater than or equal to the low, " + low);
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     //TODO: Make it faster. Maybe use a preset array?
     private void setDesirability(Building b)
     {

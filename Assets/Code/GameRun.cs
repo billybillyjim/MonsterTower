@@ -54,6 +54,8 @@ public class GameRun : MonoBehaviour {
     public List<Building> selectedBuildings = new List<Building>();
     public List<Character> characters = new List<Character>();
 
+    private int witchID;
+
     //Not currently using this
     enum Days { Sat, Sun, Mon, Tue, Wed, Thu, Fri };
     private Vector2 boxStartPos = Vector2.zero;
@@ -354,14 +356,17 @@ public class GameRun : MonoBehaviour {
                     b.moveIn(i);
                     b.setSprite(tower.getBuildingData().Find(x => x.getTypeName().Equals(b.getBuildingTypeString())).getFullSprite());
                     tower.addPopulation(i);
-                    for(int j = 0; j < i; j++)
-                    {
+                    //for(int j = 0; j < i; j++)
+                   // {
                         Character witch = Instantiate(witchObject, new Vector3(UnityEngine.Random.Range(-1f, 1f), 41f, 0), Quaternion.identity).GetComponent<Character>();
                         characters.Add(witch);
+                    witch.id = witchID;
+                    witchID++;
+                        b.addTennant(witch);
                         witch.setCurrentFloor(1);
                         witch.setGoal(b);
                         witch.executeRoute();
-                    }                 
+                  //  }                 
                 }
             }          
         }

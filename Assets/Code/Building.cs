@@ -1,41 +1,49 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.EventSystems;
-using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class Building : MonoBehaviour {
 
     [SerializeField]
     private Sprite buildingSprite;
     public Sprite selectedSprite;
+
     [SerializeField]
     private int buildingType;
     private int buildingVariation;
-    private string buildingTypeString;
     [SerializeField]
     private int width;
     [SerializeField]
     private int height;
     [SerializeField]
     private int floor;
-    private float rentPay;
-    private float utilityPay;
-    [SerializeField]
-    private bool isOccupied;
-    private bool isDirt;
-    private bool isInspecting;
     [SerializeField]
     private int wVal;
     [SerializeField]
     private int hVal;
+    [SerializeField]
+    private int population;
+
+    private string buildingTypeString;
+
+    private float rentPay;
+    private float utilityPay;
     private float cost;
     [SerializeField]
     private float desirability;
+
     [SerializeField]
-    private int population;
+    private bool isOccupied;
+    private bool isDirt;
+    private bool isInspecting;
+
     private UnityEngine.EventSystems.EventSystem _eventSystem;
+
     TowerMap tower;
+
     private List<DesiribilityModifier> desireModifiers = new List<DesiribilityModifier>();
+    private List<Character> tennants = new List<Character>();
 
     void Awake()
     {
@@ -177,12 +185,12 @@ public class Building : MonoBehaviour {
         }
         if(Tools.currentTool != null)
         {
-            if (!Tools.currentTool.getName().Equals("Inspect"))
+            if (!Tools.currentTool.getName().Equals("Inspect") && !Tools.currentTool.getName().Equals("Elevator"))
             {
 
                 if (Input.GetMouseButton(0))
                 {
-                    if(buildingType == 2)
+                    if (buildingType == 2)
                     {
                         return;
                     }
@@ -314,6 +322,10 @@ public class Building : MonoBehaviour {
         }
         return f;
     }
+    public void clearDesirability()
+    {
+        desireModifiers.Clear();
+    }
     public string getBuildingTypeString()
     {
         return buildingTypeString;
@@ -322,5 +334,12 @@ public class Building : MonoBehaviour {
     {
         return buildingSprite;
     }
-
+    public void addTennant(Character c)
+    {
+        tennants.Add(c);
+    }
+    public void clearTennants()
+    {
+        tennants.Clear();
+    }
 }
