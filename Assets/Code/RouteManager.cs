@@ -21,62 +21,60 @@ public class RouteManager : MonoBehaviour {
                 }
             }
         }
-        Debug.Log("goalfloor: " + floor + ", charFloor: " + charFloor + ", eid: " + bestFit.id);
         return bestFit;
     }
-
-    public static Stack<Elevator> getElevatorRouteQueue(int goalFloor, int startFloor)
+    public static Stack<Vector2> findRouteToGoal(Vector2 finalGoal, int currentFloor)
     {
-        Stack<Elevator> elevatorStack = new Stack<Elevator>();
-        int newGoalFloor = goalFloor;
-        safety++;
-        foreach (Elevator elevator in TowerMap.elevatorList)
-        {
-            if (elevator.checkForAccess(newGoalFloor))
-            {
-                elevatorStack.Push(elevator);
+        Stack<Vector2> goals = new Stack<Vector2>();
+        int finalGoalFloor = FloorSpaceManager.convertPositionToFloor(finalGoal.y);
 
-                if (elevatorStack.Peek().checkForAccess(startFloor))
+        foreach(Elevator elevator in TowerMap.elevatorList)
+        {
+            if(elevator.checkForAccess(currentFloor, finalGoalFloor))
+            {
+                goals.Push(elevator.transform.position);
+                return goals;
+            }
+            else if (elevator.checkForAccess(finalGoalFloor))
+            {
+                goals.Push(elevator.transform.position);
+                if(currentFloor < finalGoalFloor)
                 {
-                    return elevatorStack;
+                    goals = findRouteToGoal(finalGoal, elevator.lowestFloor, goals);
                 }
                 else
                 {
-                    if(startFloor < goalFloor)
-                    {
-                        newGoalFloor = elevatorStack.Peek().lowestFloor;
-                    }
-                    else
-                    {
-                        newGoalFloor = elevatorStack.Peek().highestFloor;
-                    }
-                    elevatorStack = getElevatorRouteQueue(newGoalFloor, startFloor, elevatorStack);
+                    goals = findRouteToGoal(finalGoal, elevator.highestFloor, goals);
                 }
             }
         }
-
-        return elevatorStack;
+        return goals;
     }
-    public static Stack<Elevator> getElevatorRouteQueue(int goalFloor, int startFloor, Stack<Elevator> elevatorStack)
-    {
-        int newGoalFloor = goalFloor;
-        safety++;
-        if(safety > 1000)
-        {
-            return elevatorStack;
-        }
+    public static Stack<Vector2> findRouteToGoal(Vector2 finalGoal, int currentFloor, Stack<Vector2> goals)
+    {       
+        int finalGoalFloor = FloorSpaceManager.convertPositionToFloor(finalGoal.y);
+        int count = goals.Count;
+
         foreach (Elevator elevator in TowerMap.elevatorList)
         {
-            if (elevator.checkForAccess(newGoalFloor))
+            if (elevator.checkForAccess(currentFloor, finalGoalFloor))
             {
-                elevatorStack.Push(elevator);
-
-                if (elevatorStack.Peek().checkForAccess(startFloor))
+                goals.Push(elevator.transform.position);
+                return goals;
+            }
+            else if (elevator.checkForAccess(finalGoalFloor) && (elevator.lowestFloor < FloorSpaceManager.convertPositionToFloor(goals.Peek().y) || elevator.highestFloor > FloorSpaceManager.convertPositionToFloor(goals.Peek().y)))
+            {
+                goals.Push(elevator.transform.position);
+                if(currentFloor < finalGoalFloor)
                 {
-                    return elevatorStack;
+                    goals = findRouteToGoal(finalGoal, elevator.lowestFloor, goals);
+                }
+                else
+                {
+                    goals = findRouteToGoal(finalGoal, elevator.highestFloor, goals);
                 }
             }
         }
-        return elevatorStack;
+        return goals;
     }
 }

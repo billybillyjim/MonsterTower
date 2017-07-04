@@ -23,4 +23,14 @@ class UniqueQueue<T>
         T item = queue.Peek();
         return item;
     }
+    public virtual void Clear()
+    {
+        alreadyAdded.Clear();
+        queue.Clear();
+    }
+    public virtual void ClearHash()
+    {
+        alreadyAdded.Clear();
+    }
+
 }

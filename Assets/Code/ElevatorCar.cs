@@ -9,6 +9,8 @@ public class ElevatorCar : MonoBehaviour {
     [SerializeField]
     private int capacity;
     [SerializeField]
+    private float speed = .125f;
+    [SerializeField]
     private int maxCapacity;
     [SerializeField]
     private int currentFloor;
@@ -16,145 +18,106 @@ public class ElevatorCar : MonoBehaviour {
     private UniqueQueue<int> floorQueue = new UniqueQueue<int>();
     [SerializeField]
     private List<GameObject> contents = new List<GameObject>();
+
     [SerializeField]
-    private UniqueQueue<Character> waitQueue = new UniqueQueue<Character>();
+    private bool waiting = false;
 
     private int minFloor;
     private int maxFloor;
 
-    private float lerpTime = 1;
-    private float currentLerpTime = 0;
-    private float time = 0;
-
-    public void addFloorToQueue(int i)
+    public void pickUp(GameObject g)
     {
-        floorQueue.Enqueue(i);
-    }
-    private void goToFloor(int i)
-    {
-        //Mathf.Lerp(transform.position.y, (float)i, time)
-        //Debug.Log("Lerping to" + i + " from " + currentFloor);
-        //Debug.Log("Heading to position " + FloorSpaceManager.convertFloorToPosition(i) + " which is supposedly floor " + i);
-        i = (int)Mathf.Clamp(i, minFloor, maxFloor);
-        transform.position = new Vector2(transform.position.x, Mathf.MoveTowards(transform.position.y, FloorSpaceManager.convertFloorToPosition(i), .1f));
-    }
-
-    // Update is called once per frame
- /*   void Update()
-    {
-        time = time * time * (3 - 2 * time);
-        
-        if (floorQueue.Count > 0)
+        contents.Add(g);
+        if (g.GetComponent<Character>())
         {
-            currentFloor = FloorSpaceManager.convertPositionToFloor(transform.position.y);
-            if (Mathf.Approximately(floorQueue.Peek(), currentFloor))
+            g.GetComponent<Character>().updateToNextGoal();
+            addFloorToQueue(FloorSpaceManager.convertPositionToFloor(g.GetComponent<Character>().currentGoal.y));
+        }
+        g.SetActive(false);
+    }
+    public void dropOff(GameObject g)
+    {
+        if (g.GetComponent<Character>())
+        {
+            if(g.GetComponent<Character>().currentGoal.x > transform.position.x)
             {
-                floorQueue.Dequeue();
-                dropOffContents();
+                g.transform.position = transform.position + new Vector3(1.1f, 0);
             }
             else
             {
-                goToFloor(floorQueue.Peek());
+                g.transform.position = transform.position - new Vector3(.5f, 0);
+            }
+            Physics2D.IgnoreCollision(g.GetComponent<Collider2D>(), gameObject.GetComponent<Collider2D>());
+        }
+        g.SetActive(true);
+    }
+    private void checkForDropOffs()
+    {
+        List<GameObject> contentsToRemove = new List<GameObject>();
+        foreach(GameObject g in contents)
+        {
+            if (g.gameObject.GetComponent<Character>())
+            {
+                if(g.gameObject.GetComponent<Character>().currentGoal.y == transform.position.y)
+                {
+                    dropOff(g);
+                    contentsToRemove.Add(g);
+                }
             }
         }
+        contents = contents.Except<GameObject>(contentsToRemove).ToList();
+            }
+    public void goToFloor(int floor)
+    {
+        if(currentFloor != floor)
+        {
+            transform.position = new Vector2(transform.position.x, Mathf.MoveTowards(transform.position.y, FloorSpaceManager.convertFloorToPosition(floor), speed));
+            if(Mathf.Approximately(transform.position.y, Mathf.Round(transform.position.y)))
+            {
+                currentFloor = FloorSpaceManager.convertPositionToFloor(transform.position.y);
+            }
+        }
+        else
+        {
+            floorQueue.Dequeue();
+        }
     }
-    */
     public void tick()
     {
-        time = time * time * (3 - 2 * time);
-
         if (floorQueue.Count > 0)
         {
-            Debug.Log("Elevator " + gameObject.GetComponentInParent<Elevator>().id + " going to floor " + floorQueue.Peek());
-            if (FloorSpaceManager.convertPositionToFloorIfEqual(transform.position.y) != 0)
-            {
-                currentFloor = FloorSpaceManager.convertPositionToFloorIfEqual(transform.position.y);
-                
-                addCharacterQueueToCar();
-            }      
-            if (floorQueue.Peek() == currentFloor)
-            {
-                floorQueue.Dequeue();
-                dropOffContents();
-            }
-            else
-            {
-                goToFloor(floorQueue.Peek());
-            }
+            waiting = false;
+            goToFloor(floorQueue.Peek());
+            checkForDropOffs();
+        }
+        else if (contents.Count > 0)
+        {
+            waiting = false;
+            addFloorToQueue(FloorSpaceManager.convertPositionToFloor(contents[0].GetComponent<Character>().currentGoal.y));
+        }
+        else
+        {
+            floorQueue.ClearHash();
+            waiting = true;
         }
     }
-    private void addCharacterQueueToCar()
+    public void addFloorToQueue(int i)
     {
-        while(waitQueue.Count != 0)
-        {
-            Character c = waitQueue.Dequeue();
-            contents.Add(c.gameObject);
-            addFloorToQueue(FloorSpaceManager.convertPositionToFloor(c.gameObject.GetComponent<Character>().currentGoal.y));
-            c.gameObject.SetActive(false);
-        }
+
+        floorQueue.Enqueue(i);
+        Debug.Log("i is " + i + "Floorqueuecount is " + floorQueue.Count);
     }
     public void setCurrentFloor(int i)
     {
         currentFloor = i;
     }
-    void OnCollisionEnter2D(Collision2D coll)
-    {
-        if (coll.gameObject.tag == "Character")
-        {
-            // contents.Add(coll.gameObject);
-            if (coll.gameObject.GetComponent<Character>().getCurrentFloor() == currentFloor){
-                waitQueue.Enqueue(coll.gameObject.GetComponent<Character>());
-                
-            }
-            else
-            {
-                waitQueue.Enqueue(coll.gameObject.GetComponent<Character>());
-            }
-            //capacity++;
-            // addFloorToQueue(FloorSpaceManager.convertPositionToFloor(coll.gameObject.GetComponent<Character>().finalGoal.y));
-            // coll.gameObject.SetActive(false);
-        }
-    }
-    private void dropOffContents()
-    {
-        List<GameObject> removeList = new List<GameObject>();
-        for(int i = 0; i < contents.Count; i++)
-        {
-            GameObject g = contents[i];
-
-           // Debug.Log("Current Floor: " + currentFloor + ", Character Final Goal Y: " + g.GetComponent<Character>().finalGoal.y + ", Converted Goal Y: " + FloorSpaceManager.convertPositionToFloor(g.GetComponent<Character>().finalGoal.y));
-            if(g.GetComponent<Character>() != null && FloorSpaceManager.convertPositionToFloor(g.GetComponent<Character>().currentGoal.y) == currentFloor)
-            {
-                Character c = g.GetComponent<Character>();
-                Debug.Log(c.nextGoal + ", " + c.currentGoal);
-
-                    Physics2D.IgnoreCollision(g.GetComponent<Collider2D>(), GetComponent<Collider2D>());
-
-                    if (transform.position.x > c.finalGoal.x)
-                    {
-                        g.transform.position = transform.position - new Vector3(.1f, 0);
-                    }
-                    else
-                    {
-                        g.transform.position = transform.position + new Vector3(.6f, 0);
-                    }
-
-                    c.setCurrentFloor(currentFloor);
-
-                    g.SetActive(true);
-                    capacity--;
-                    removeList.Add(g);
-                    c.executeRoute();
-                
-
-            }
-        }
-        contents = contents.Except(removeList).ToList();
-    }
-
     public void setFloorMinMax(int min, int max)
     {
         minFloor = min;
         maxFloor = max;
+    }
+    public bool getWaitStatus()
+    {
+        return waiting;
     }
 }

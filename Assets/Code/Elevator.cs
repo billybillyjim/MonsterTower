@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class Elevator : MonoBehaviour {
 
@@ -10,11 +11,15 @@ public class Elevator : MonoBehaviour {
     public GameObject shaft;
 
     public List<ElevatorCar> cars = new List<ElevatorCar>();
+    [SerializeField]
+    private List<int> waitQueue = new List<int>();
 
     public int highestFloor;
     public int lowestFloor;
 
     public int id;
+
+    private int slowTickInt = 0;
 
     private bool isBeingDragged = false;
 
@@ -35,6 +40,24 @@ public class Elevator : MonoBehaviour {
         foreach(ElevatorCar c in cars)
         {
             c.tick();
+        }
+        slowTickInt++;
+        if(slowTickInt > 10)
+        {
+            slowTick();
+        }
+    }
+    private void slowTick()
+    {
+        foreach (ElevatorCar c in cars)
+        {
+            if (c.getWaitStatus() && waitQueue.Count > 0)
+            {
+                Debug.Log("Character current floor is " + waitQueue[0]);
+                c.addFloorToQueue(waitQueue[0]);
+                waitQueue.RemoveAt(0);
+
+            }
         }
     }
     void OnMouseEnter()
@@ -122,12 +145,35 @@ public class Elevator : MonoBehaviour {
             return false;
         }
     }
+    public bool checkForAccess(int currentFloor, int goalFloor)
+    {
+        if((currentFloor >= lowestFloor && currentFloor <= highestFloor) && (goalFloor >= lowestFloor && goalFloor <= highestFloor))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
     public void callCar(int i)
     {      
         cars[0].addFloorToQueue(i);
     }
+    public void addToWaitQueue(Character c)
+    {
+        if(waitQueue.Contains(c.getCurrentFloor()) != true)
+        {
+            waitQueue.Add(c.getCurrentFloor());
+        }
+        
+    }
     public Vector2 getSpaceUsed()
     {
         return new Vector2(highestFloor, lowestFloor);
+    }
+    public int getWaitQueueCount()
+    {
+        return waitQueue.Count;
     }
 }

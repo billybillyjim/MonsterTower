@@ -12,87 +12,61 @@ public class Character : MonoBehaviour {
     
     public Vector2 finalGoal;
     public Vector2 currentGoal;
-    public Vector2 nextGoal;
+
     [SerializeField]
-    private List<Elevator> route = new List<Elevator>();
-    [SerializeField]
-    private Stack<Elevator> qRoute = new Stack<Elevator>();
-    [SerializeField]
-    private Queue<float[,]> qFloatRoute = new Queue<float[,]>();
+    private Stack<Vector2> route = new Stack<Vector2>();
 
     void OnEnable()
     {
         currentFloor = FloorSpaceManager.convertPositionToFloor(transform.position.y);
         GetComponent<SpriteRenderer>().sortingOrder = 50;
     }
-    public void setGoal(Building b)
+    public void tick()
     {
-        finalGoal = new Vector2(b.getX(), b.getY()) ;
-        planRoute();
+        goTowardGoal();
     }
-    public void planRoute()
-    {       
-        qRoute = RouteManager.getElevatorRouteQueue(FloorSpaceManager.convertPositionToFloor(finalGoal.y), currentFloor);
-    }
-
-    public void executeRoute()
+    private void goTowardGoal()
     {
-        
-        if (qRoute.Count > 0)
-        {
-            Debug.Log("qRoute size: " + qRoute.Count);
-            Debug.Log(id + " going to " + qRoute.Peek().id + "to get to floor" + qRoute.Peek().transform.position);
-            currentGoal = qRoute.Pop().transform.position;
-            if(qRoute.Count > 0)
-            {
-                nextGoal = qRoute.Peek().transform.position;
-            }
-            else
-            {
-                nextGoal = currentGoal;
-            }
-            
-        }
-        else
-        {
-            currentGoal = finalGoal;
-            Debug.Log(id + " going to " + finalGoal.y);
-        }
-        
-    }
-    private void goToElevator(Elevator e)
-    {
-        transform.position = new Vector3(Mathf.MoveTowards(transform.position.x, e.transform.position.x, moveSpeed), transform.position.y);
-    }
-    private void goToBuilding(Building b)
-    {
-        transform.position = new Vector3(Mathf.MoveTowards(transform.position.x, b.transform.position.x, moveSpeed), transform.position.y);
-    }
-    private void goToGoal()
-    {
-        transform.position = new Vector3(Mathf.MoveTowards(transform.position.x, finalGoal.x, moveSpeed), transform.position.y);
-        if(Mathf.Approximately(finalGoal.x, transform.position.x))
+        transform.position = new Vector2(Mathf.MoveTowards(transform.position.x, currentGoal.x, moveSpeed), transform.position.y);
+        if(Mathf.Approximately(transform.position.x, finalGoal.x) && Mathf.Approximately(transform.position.y, finalGoal.y))
         {
             gameObject.SetActive(false);
         }
     }
-    public void tick()
+    public void setGoal(Building b)
     {
-        if (FloorSpaceManager.convertPositionToFloor(finalGoal.y) == currentFloor)
-        { 
-            goToGoal();
-        }
-        else
+        finalGoal = b.transform.position;
+        findRoute();
+    }
+    public void findRoute()
+    {
+        route.Push(finalGoal);
+        Stack<Vector2> r = RouteManager.findRouteToGoal(finalGoal, currentFloor);
+        while(r.Count > 0)
         {
-            transform.position = new Vector3(Mathf.MoveTowards(transform.position.x, currentGoal.x, moveSpeed), transform.position.y);
+            route.Push(r.Pop());
         }
     }
-    void OnCollisionEnter2D(Collision2D coll)
+    public void updateToNextGoal()
     {
-        if(coll.gameObject.tag == "Elevator")
+        if(route.Count > 0)
+        {
+            currentGoal = route.Pop();
+
+        }
+    }
+    public void OnCollisionEnter2D(Collision2D coll)
+    {
+        if (coll.gameObject.tag == "ElevatorCar" && route.Count > 0)
+        {
+            coll.gameObject.GetComponent<ElevatorCar>().pickUp(this.gameObject);           
+        }
+        else if(coll.gameObject.tag == "Elevator" && route.Count > 0)
         {
             coll.gameObject.GetComponent<Elevator>().callCar(currentFloor);
+            coll.gameObject.GetComponent<Elevator>().addToWaitQueue(this);
         }
+
     }
     public void setCurrentFloor(int i)
     {

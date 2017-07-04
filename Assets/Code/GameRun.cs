@@ -365,7 +365,7 @@ public class GameRun : MonoBehaviour {
                         b.addTennant(witch);
                         witch.setCurrentFloor(1);
                         witch.setGoal(b);
-                        witch.executeRoute();
+                        witch.updateToNextGoal();
                   //  }                 
                 }
             }          
